@@ -1,0 +1,76 @@
+{% extends "dashboard_base.html" %}
+{% block title %}{% if doctor %}Edit{% else %}Add{% endif %} Doctor{% endblock %}
+{% block sidebar %}
+{% set nav_active = 'doctors' %}
+{% include 'admin/sidebar_snippet.html' %}
+{% endblock %}
+{% block mobile_nav_inner %}
+{% include 'admin/mobile_nav_snippet.html' %}
+{% endblock %}
+{% block dashboard_content %}
+<header class="section-head">
+  <h1>{% if doctor %}Edit doctor{% else %}New doctor{% endif %}</h1>
+  <p class="muted small">Update profile and department assignment.</p>
+</header>
+
+<section class="card" style="max-width: 720px;">
+  <form method="post" class="form" novalidate>
+    <div class="grid grid-2">
+      <div class="field">
+        <label>Name</label>
+        <input class="input" name="name" required value="{{ doctor.name if doctor else '' }}">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" class="input" name="email" required value="{{ doctor.email if doctor else '' }}">
+      </div>
+      <div class="field">
+        <label>Password {% if doctor %}(leave blank to keep){% endif %}</label>
+        <input type="password" class="input" name="password" {% if not doctor %}placeholder="doctor123"{% endif %}>
+      </div>
+      <div class="field">
+        <label>Phone</label>
+        <input class="input" name="phone" value="{{ doctor.phone if doctor else '' }}">
+      </div>
+      <div class="field">
+        <label>Department</label>
+        <select class="input" name="department_id" required>
+          {% for dep in departments %}
+          <option value="{{ dep.id }}" {% if doctor and doctor.department_id == dep.id %}selected{% endif %}>{{ dep.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Years of experience</label>
+        <input type="number" class="input" name="experience_years" min="0" value="{{ doctor.experience_years if doctor else 0 }}">
+      </div>
+    </div>
+    <div class="field">
+      <label>Consultation Fee (₹)</label>
+      <input type="number" class="input" name="consultation_fee" placeholder="e.g. 1000" value="{{ doctor.consultation_fee if doctor else '500' }}">
+    </div>
+    <div class="field">
+      <label>Bio / Experience</label>
+      <textarea class="input" name="bio" rows="3">{{ doctor.bio if doctor else '' }}</textarea>
+    </div>
+    <div class="grid grid-2">
+      <div class="field">
+        <label>Unavailability Start Date</label>
+        <input type="date" name="unavailability_start_date" class="input" value="{{ doctor.unavailability_start_date.strftime('%Y-%m-%d') if doctor and doctor.unavailability_start_date else '' }}">
+      </div>
+      <div class="field">
+        <label>Unavailability End Date</label>
+        <input type="date" name="unavailability_end_date" class="input" value="{{ doctor.unavailability_end_date.strftime('%Y-%m-%d') if doctor and doctor.unavailability_end_date else '' }}">
+      </div>
+    </div>
+    <div class="field">
+      <label>Qualifications</label>
+      <input type="text" name="qualifications" class="input" placeholder="e.g., MD, FACS" value="{{ doctor.qualifications if doctor else '' }}">
+    </div>
+    <div class="card-actions">
+      <button type="submit" class="btn btn-primary">Save</button>
+      <a href="{{ url_for('admin.doctors_list') }}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

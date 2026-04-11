@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Patient Registration{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="wrap" style="max-width: 620px;">
+    <header class="section-head">
+      <h1>Create patient account</h1>
+      <p class="muted">Register to book appointments and view your visit history.</p>
+    </header>
+
+    <div class="card">
+      <form method="post" class="form" novalidate>
+        <div class="grid grid-2">
+          <div class="field">
+            <label for="name">Full name</label>
+            <input class="input" id="name" name="name" required minlength="2">
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" class="input" id="email" name="email" required>
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input type="password" class="input" id="password" name="password" required minlength="6">
+          </div>
+          <div class="field">
+            <label for="phone">Phone</label>
+            <input class="input" id="phone" name="phone">
+          </div>
+          <div class="field">
+            <label for="gender">Gender</label>
+            <select class="input" id="gender" name="gender">
+              <option value="">—</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="date_of_birth">Date of birth</label>
+            <input type="date" class="input" id="date_of_birth" name="date_of_birth">
+          </div>
+        </div>
+        <div class="field">
+          <label for="address">Address</label>
+          <textarea class="input" id="address" name="address" rows="2"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Register</button>
+      </form>
+      <p class="muted small" style="margin-top: 12px;">Already registered? <a href="{{ url_for('patient.login') }}">Sign in</a></p>
+    </div>
+  </div>
+</section>
+{% endblock %}

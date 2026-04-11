@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}About — CuraHealth{% endblock %}
+{% block content %}
+<section class="section section-alt">
+  <div class="wrap">
+    <div class="grid grid-2" style="align-items: center; gap: 48px;">
+      <article>
+        <p class="kicker">Our Story</p>
+        <h1>About CuraHealth</h1>
+        <p class="lead" style="margin-bottom: 24px;">We are a leading multispecialty healthcare provider committed to clinical excellence and patient-centered service.</p>
+        <p class="muted" style="margin-bottom: 20px;">CuraHealth was founded on the principle that high-quality medical care should be accessible and compassionate. Our state-of-the-art facility integrates advanced medical technology with a team of world-class specialists to provide comprehensive treatment across 18 departments.</p>
+        <div class="grid grid-2" style="gap: 20px;">
+          <div class="card" style="padding: 16px; border: none;">
+            <div class="h6" style="color: var(--primary); margin: 0;">20+</div>
+            <div class="small muted">Expert Doctors</div>
+          </div>
+          <div class="card" style="padding: 16px; border: none;">
+            <div class="h6" style="color: var(--primary); margin: 0;">18</div>
+            <div class="small muted">Specialized Depts</div>
+          </div>
+        </div>
+      </article>
+      <figure style="margin: 0; position: relative;">
+        <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1000&q=80" alt="CuraHealth Modern Facility" style="width: 100%; height: 500px; object-fit: cover; border-radius: 24px; box-shadow: var(--shadow);">
+        <div class="card" style="position: absolute; bottom: -20px; left: -20px; background: var(--primary); color: white; border: none; padding: 20px;">
+          <div class="h6" style="color: white; margin: 0;">Established 2005</div>
+          <div class="small" style="opacity: 0.8;">20+ Years of Excellence</div>
+        </div>
+      </figure>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block sidebar %}
+{% set nav_active = 'dash' %}
+{% include 'admin/sidebar_snippet.html' %}
+{% endblock %}
+{% block mobile_nav_inner %}
+{% include 'admin/mobile_nav_snippet.html' %}
+{% endblock %}
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block dashboard_content %}
+<header class="section-head">
+  <h1>System Dashboard</h1>
+  <p class="muted">Real-time clinical and operational analytics.</p>
+</header>
+
+<div class="grid grid-4" style="margin-bottom: 32px;">
+  <div class="card" style="border-left: 4px solid var(--primary);">
+    <div class="stat">{{ stats.patients }}</div>
+    <div class="muted small">Total Patients</div>
+  </div>
+  <div class="card" style="border-left: 4px solid var(--primary);">
+    <div class="stat">{{ stats.doctors }}</div>
+    <div class="muted small">Total Doctors</div>
+  </div>
+  <div class="card" style="border-left: 4px solid var(--primary);">
+    <div class="stat">{{ stats.appointments }}</div>
+    <div class="muted small">Total Bookings</div>
+  </div>
+  <div class="card" style="border-left: 4px solid var(--primary);">
+    <div class="stat">{{ stats.today }}</div>
+    <div class="muted small">Today's Visits</div>
+  </div>
+</div>
+
+<div class="grid grid-2" style="gap: 24px; margin-bottom: 32px;">
+  <section class="card">
+    <h2 class="h6">Department Distribution</h2>
+    <div style="max-width: 300px; margin: 0 auto;">
+      <canvas id="deptChart"></canvas>
+    </div>
+  </section>
+  
+  <section class="card">
+    <h2 class="h6">Recent Activity</h2>
+    <div class="table-wrap">
+      <table class="table" style="font-size: 0.85rem;">
+        <thead><tr><th>Patient</th><th>Doctor</th><th>Date</th></tr></thead>
+        <tbody>
+          {% for a in recent_appts %}
+          <tr>
+            <td>{{ a.patient.name }}</td>
+            <td>{{ a.doctor.name }}</td>
+            <td>{{ a.appointment_date.strftime('%Y-%m-%d') }} at {{ slot_label(a.time_slot) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+  const ctx = document.getElementById('deptChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: {{ chart_labels | tojson }},
+      datasets: [{
+        data: {{ chart_values | tojson }},
+        backgroundColor: [
+          '#008080', '#2DD4BF', '#14B8A6', '#0D9488', '#0F766E', 
+          '#115E59', '#134E4A', '#5EEAD4', '#99F6E4', '#CCFBF1'
+        ],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+      }
+    }
+  });
+</script>
+{% endblock %}

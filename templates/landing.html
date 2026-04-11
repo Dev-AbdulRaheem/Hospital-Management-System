@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}CuraHealth — Smart Hospital Management{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="wrap hero-inner">
+    <div class="hero-content">
+      <p class="kicker">Welcome to CuraHealth</p>
+      <h1>Modern Healthcare for a Better Life</h1>
+      <p class="lead">Experience world-class medical services with our team of expert doctors and state-of-the-art facilities. Your health is our only priority.</p>
+      <div class="hero-actions">
+        <a href="{{ url_for('patient.register') }}" class="btn btn-primary btn-lg">Book Appointment</a>
+        <a href="#services" class="btn btn-secondary btn-lg">Our Services</a>
+      </div>
+    </div>
+    <div class="hero-image">
+      <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=800&auto=format&fit=crop" alt="Professional Doctor">
+    </div>
+  </div>
+</section>
+
+<section id="services" class="section">
+  <div class="wrap">
+    <header class="section-head center">
+      <p class="kicker">Specialties</p>
+      <h2>Our Departments</h2>
+      <p class="lead">Comprehensive care across 18 specialized departments, each equipped with advanced technology.</p>
+    </header>
+    <div class="grid grid-4">
+      {% set icons = {
+        'Cardiology': '❤️', 'Neurology': '🧠', 'Orthopedics': '🦴', 'Pediatrics': '👶',
+        'Oncology': '🎗️', 'Dermatology': '✨', 'Ophthalmology': '👁️', 'ENT': '👂',
+        'Gastroenterology': '🧪', 'Pulmonology': '🫁', 'Nephrology': '💧', 'Urology': '🚽',
+        'Endocrinology': '🩸', 'Rheumatology': '💪', 'Psychiatry': '🤝', 'Obstetrics & Gynecology': '🤰',
+        'Emergency Medicine': '🚑', 'Radiology': '☢️'
+      } %}
+      {% for d in departments %}
+      <a href="{{ url_for('public.department_detail', dept_id=d.id) }}" class="card card-click dept-card">
+        <div class="card-icon">{{ icons.get(d.name, '🏥') }}</div>
+        <div class="card-title">{{ d.name }}</div>
+        <div class="card-sub">{{ d.description[:60] }}...</div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="wrap">
+    <header class="section-head row-between">
+      <div>
+        <p class="kicker">Our Team</p>
+        <h2>Meet Our Expert Doctors</h2>
+        <p class="lead">A preview of our clinical team — dedicated to providing the best care.</p>
+      </div>
+      <a href="{{ url_for('public.doctors_page') }}" class="btn btn-primary">View Full Directory</a>
+    </header>
+    <div class="grid grid-4">
+      {% for doc in featured_doctors %}
+      <article class="card">
+        <div style="position: relative; height: 180px; overflow: hidden; border-radius: 12px; margin-bottom: 12px;">
+          {% if doc.image_url %}
+          <img src="{{ doc.image_url }}" 
+               alt="{{ doc.name }}" 
+               style="width: 100%; height: 100%; object-fit: cover;">
+          {% else %}
+          <img src="{{ url_for('static', filename='img/doctor-placeholder.jpg') }}" 
+               alt="{{ doc.name }}" 
+               style="width: 100%; height: 100%; object-fit: cover;">
+          {% endif %}
+          <div class="badge badge-success" style="position: absolute; top: 8px; right: 8px;">{{ doc.department.name if doc.department else 'Specialist' }}</div>
+        </div>
+        <h3 class="card-title">{{ doc.name }}</h3>
+        <p class="muted small">{{ doc.experience_years }}+ years of experience</p>
+        <div class="card-actions">
+          <a href="{{ url_for('public.doctor_detail', doctor_id=doc.id) }}" class="btn btn-secondary btn-sm">View Profile</a>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('patient.book', doctor_id=doc.id) }}">Book Now</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Department modal -->
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.HMS_PRESELECT_DEPT = {{ preselect_dept or 'null' }};
+</script>
+<script src="{{ url_for('static', filename='js/landing.js') }}"></script>
+{% endblock %}

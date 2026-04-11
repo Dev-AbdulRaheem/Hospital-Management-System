@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Login — CuraHealth{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <header class="section-head center">
+      <h1>Sign in to your portal</h1>
+      <p class="muted">Choose your role to continue.</p>
+    </header>
+
+    <div class="grid grid-3">
+      <article class="card">
+        <div class="badge badge-success">Patient</div>
+        <p class="muted">Book visits and view your records.</p>
+        <a href="{{ patient_login_url }}" class="btn btn-primary">Patient login</a>
+      </article>
+      <article class="card">
+        <div class="badge badge-warn">Doctor</div>
+        <p class="muted">Schedules, patients, and clinical notes.</p>
+        <a href="{{ url_for('doctor.login') }}" class="btn btn-secondary">Doctor login</a>
+      </article>
+      <article class="card">
+        <div class="badge badge-danger">Administrator</div>
+        <p class="muted">Manage users, appointments, and reports.</p>
+        <a href="{{ url_for('admin.login') }}" class="btn btn-ghost">Admin login</a>
+      </article>
+    </div>
+
+    <p class="muted small" style="text-align:center; margin-top: 18px;">
+      New patient? <a href="{{ patient_login_url.replace('login', 'register') }}">Create an account</a>
+    </p>
+  </div>
+</section>
+{% endblock %}

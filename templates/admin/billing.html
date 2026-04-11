@@ -1,0 +1,65 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Billing Desk — CuraHealth{% endblock %}
+{% block sidebar %}
+{% set nav_active = 'billing' %}
+{% include 'admin/sidebar_snippet.html' %}
+{% endblock %}
+{% block dashboard_content %}
+<header class="section-head">
+  <h1>Billing Desk</h1>
+  <p class="muted">Generate invoices and track payment status.</p>
+</header>
+
+<section class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Patient</th>
+          <th>Doctor</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in appointments %}
+        <tr>
+          <td>{{ a.appointment_date.strftime('%Y-%m-%d') }}</td>
+          <td>{{ a.patient.name }}</td>
+          <td>{{ a.doctor.name }}</td>
+          <td>
+            {% if a.invoice_amount > 0 %}
+            <strong>${{ a.invoice_amount }}</strong>
+            <div class="small muted">Fee + {{ (a.ordered_tests.split(',')|length) if a.ordered_tests else 0 }} Labs</div>
+            {% else %}
+            <form method="post" action="{{ url_for('admin.generate_invoice', appt_id=a.id) }}" class="row-between" style="gap: 4px;">
+              <input type="number" name="amount" class="input" style="width: 80px;" placeholder="Amount" required>
+              <button type="submit" class="btn btn-primary btn-sm">Set Fee</button>
+            </form>
+            {% endif %}
+          </td>
+          <td>
+            {% if a.is_paid %}
+            <span class="badge badge-success">Paid</span>
+            {% elif a.invoice_amount > 0 %}
+            <span class="badge badge-warn">Unpaid</span>
+            {% else %}
+            —
+            {% endif %}
+          </td>
+          <td>
+            {% if a.invoice_amount > 0 and not a.is_paid %}
+            <form method="post" action="{{ url_for('admin.mark_paid', appt_id=a.id) }}">
+              <button type="submit" class="btn btn-secondary btn-sm">Mark as Paid</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

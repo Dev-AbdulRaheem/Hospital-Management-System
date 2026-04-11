@@ -1,0 +1,101 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Doctor Dashboard{% endblock %}
+{% block sidebar %}
+<nav class="side-nav">
+  <div class="side-title">Doctor</div>
+  <div class="muted small" style="margin: 0 0 10px;">{{ doctor.name }}</div>
+  <a class="nav-link active" href="{{ url_for('doctor.dashboard') }}">Dashboard</a>
+  <a class="nav-link" href="{{ url_for('doctor.logout') }}">Logout</a>
+</nav>
+{% endblock %}
+{% block mobile_nav_inner %}
+<div class="mobile-actions">
+  <a class="btn btn-secondary btn-sm" href="{{ url_for('doctor.dashboard') }}">Dashboard</a>
+  <a class="btn btn-ghost btn-sm" href="{{ url_for('doctor.logout') }}">Logout</a>
+</div>
+{% endblock %}
+{% block dashboard_content %}
+<header class="section-head row-between">
+  <div>
+    <h1>Hi, Dr. {{ doctor.name }}</h1>
+    <p class="muted">{{ doctor.department.name }} · {{ doctor.experience_years }} Years Exp.</p>
+  </div>
+  <form method="post" action="{{ url_for('doctor.toggle_availability') }}">
+    <button type="submit" class="btn {% if doctor.is_active %}btn-primary{% else %}btn-secondary{% endif %}" style="display: flex; align-items: center; gap: 8px;">
+      <span style="width: 10px; height: 10px; border-radius: 50%; background: {% if doctor.is_active %}#4ade80{% else %}#f87171{% endif %};"></span>
+      {{ 'Accepting Bookings' if doctor.is_active else 'Not Available' }}
+    </button>
+  </form>
+</header>
+
+<div class="grid grid-3" style="margin-bottom: 24px;">
+  <div class="card" style="border-top: 4px solid var(--primary); padding: 16px;">
+    <div class="stat" style="font-size: 1.5rem;">{{ stats.pending_today }}</div>
+    <div class="muted small">Pending Today</div>
+  </div>
+  <div class="card" style="border-top: 4px solid var(--primary); padding: 16px;">
+    <div class="stat" style="font-size: 1.5rem;">{{ stats.completed_today }}</div>
+    <div class="muted small">Completed Today</div>
+  </div>
+  <div class="card" style="border-top: 4px solid var(--primary); padding: 16px;">
+    <div class="stat" style="font-size: 1.5rem;">{{ patients|length }}</div>
+    <div class="muted small">Total Patients</div>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <section class="card">
+    <h2 class="h6">Upcoming Schedule</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Date</th><th>Time</th><th>Patient</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {% for a in upcoming %}
+          <tr>
+            <td>{{ a.appointment_date.strftime('%Y-%m-%d') }}</td>
+            <td>{{ slot_label(a.time_slot) }}</td>
+            <td>{{ a.patient.name }}</td>
+            <td><span class="badge">{{ a.status }}</span></td>
+            <td><a class="btn btn-secondary btn-sm" href="{{ url_for('doctor.patient_detail', patient_id=a.patient_id) }}">View EHR</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="muted" style="text-align:center; padding: 16px;">No upcoming appointments.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="h6">Patient List</h2>
+    <ul class="list" style="margin-top: 10px;">
+      {% for p in patients %}
+      <li class="list-row">
+        <span>{{ p.name }}</span>
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('doctor.patient_detail', patient_id=p.id) }}">Open File</a>
+      </li>
+      {% else %}
+      <li class="muted small">No patients yet.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+
+<section class="card" style="margin-top: 24px;">
+  <h2 class="h6">Set Unavailability</h2>
+  <form method="post" action="{{ url_for('doctor.set_unavailability') }}" class="form">
+    <div class="grid grid-2" style="gap: 16px;">
+      <div class="field">
+        <label>Start Date</label>
+        <input type="date" name="start_date" class="input" value="{{ doctor.unavailability_start_date.strftime('%Y-%m-%d') if doctor.unavailability_start_date else '' }}">
+      </div>
+      <div class="field">
+        <label>End Date</label>
+        <input type="date" name="end_date" class="input" value="{{ doctor.unavailability_end_date.strftime('%Y-%m-%d') if doctor.unavailability_end_date else '' }}">
+      </div>
+    </div>
+    <p class="muted small" style="margin-top: 10px;">Set a date range if you will be unavailable for bookings. Leave blank to clear.</p>
+    <button type="submit" class="btn btn-primary" style="margin-top: 15px;">Update Unavailability</button>
+  </form>
+</section>
+{% endblock %}

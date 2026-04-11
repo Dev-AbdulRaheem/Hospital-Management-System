@@ -1,0 +1,64 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Book Appointment{% endblock %}
+{% block sidebar %}
+<nav class="side-nav">
+  <div class="side-title">Patient</div>
+  <a class="nav-link" href="{{ url_for('patient.dashboard') }}">Dashboard</a>
+  <a class="nav-link active" href="{{ url_for('patient.book') }}">Book appointment</a>
+  <a class="nav-link" href="{{ url_for('patient.logout') }}">Logout</a>
+</nav>
+{% endblock %}
+{% block mobile_nav_inner %}
+<div class="mobile-actions">
+  <a class="btn btn-secondary btn-sm" href="{{ url_for('patient.dashboard') }}">Dashboard</a>
+  <a class="btn btn-secondary btn-sm" href="{{ url_for('patient.book') }}">Book</a>
+  <a class="btn btn-ghost btn-sm" href="{{ url_for('patient.logout') }}">Logout</a>
+</div>
+{% endblock %}
+{% block dashboard_content %}
+<header class="section-head">
+  <h1>Book an appointment</h1>
+  <p class="muted small">Choose a doctor and date — available time slots load automatically. Each slot can only be booked once.</p>
+</header>
+
+<section class="card" style="max-width: 620px;">
+  <form method="post" id="bookForm" class="form" novalidate>
+    <div class="field">
+      <label for="doctor_id">Doctor</label>
+      <select class="input" id="doctor_id" name="doctor_id" required>
+        <option value="">— Select doctor —</option>
+        {% for d in active_doctors %}
+        <option value="{{ d.id }}" 
+                {% if selected_doctor_id == d.id %}selected{% endif %}
+                {% if d.unavailability_start_date and d.unavailability_end_date %}
+                data-unavail-start="{{ d.unavailability_start_date.strftime('%Y-%m-%d') }}"
+                data-unavail-end="{{ d.unavailability_end_date.strftime('%Y-%m-%d') }}"
+                {% endif %}
+                >{{ d.name }} — {{ d.department.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="appointment_date">Date</label>
+      <input type="date" class="input" id="appointment_date" name="appointment_date" required>
+    </div>
+
+    <div class="field">
+      <label for="time_slot">Available time</label>
+      <select class="input" id="time_slot" name="time_slot" required disabled>
+        <option value="">Select doctor and date first</option>
+      </select>
+      <div class="muted small" id="slotHelp" style="margin-top: 6px;">Slots update when you pick a doctor and a future date.</div>
+    </div>
+
+    <div class="card-actions">
+      <button type="submit" class="btn btn-primary" id="submitBtn" disabled>Confirm booking</button>
+      <a href="{{ url_for('patient.dashboard') }}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/booking.js') }}"></script>
+{% endblock %}

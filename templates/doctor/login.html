@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Doctor Login{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="wrap" style="max-width: 520px;">
+    <header class="section-head">
+      <h1>Doctor sign in</h1>
+      <p class="muted small">Use your hospital email. Demo password for seeded doctors: <strong>doctor123</strong></p>
+    </header>
+
+    <div class="card">
+      <form method="post" class="form" novalidate>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" class="input" id="email" name="email" required autocomplete="username">
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" class="input" id="password" name="password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary">Sign in</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

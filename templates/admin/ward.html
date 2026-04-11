@@ -1,0 +1,72 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Ward Management — CuraHealth{% endblock %}
+{% block sidebar %}
+{% set nav_active = 'ward' %}
+{% include 'admin/sidebar_snippet.html' %}
+{% endblock %}
+{% block dashboard_content %}
+<header class="section-head">
+  <h1>Ward & Bed Management</h1>
+  <p class="muted">Track room occupancy and manage ICU/General bed availability.</p>
+</header>
+
+<div class="grid grid-4" style="margin-bottom: 24px;">
+  <div class="card">
+    <div class="stat">{{ total_beds }}</div>
+    <div class="muted small">Total Beds</div>
+  </div>
+  <div class="card">
+    <div class="stat">{{ occupied_beds }}</div>
+    <div class="muted small">Occupied</div>
+  </div>
+  <div class="card">
+    <div class="stat">{{ available_beds }}</div>
+    <div class="muted small">Available</div>
+  </div>
+  <div class="card">
+    <div class="stat">{{ icu_beds }}</div>
+    <div class="muted small">ICU Beds</div>
+  </div>
+</div>
+
+<section class="card">
+  <div class="row-between" style="margin-bottom: 16px;">
+    <h2 class="h6">Room Layout</h2>
+    <form method="post" action="{{ url_for('admin.add_bed') }}" class="row-between" style="gap: 8px;">
+      <input type="text" name="room" class="input" placeholder="Room #" required style="width: 100px;">
+      <input type="text" name="bed" class="input" placeholder="Bed #" required style="width: 100px;">
+      <select name="type" class="input" style="width: 120px;">
+        <option value="General">General</option>
+        <option value="ICU">ICU</option>
+      </select>
+      <button type="submit" class="btn btn-primary btn-sm">+ Add Bed</button>
+    </form>
+  </div>
+  
+  <div class="ward-grid">
+    {% for w in wards %}
+    <div class="bed-card {% if w.is_available %}available{% else %}occupied{% endif %}">
+      <div class="small" style="font-weight: 700;">Room {{ w.room_number }}</div>
+      <div class="h6" style="margin: 4px 0;">Bed {{ w.bed_number }}</div>
+      <div class="badge {% if w.ward_type == 'ICU' %}badge-danger{% else %}badge-success{% endif %}" style="font-size: 0.65rem;">{{ w.ward_type }}</div>
+      {% if not w.is_available %}
+      <div class="small muted" style="margin-top: 8px;">{{ w.patient.name }}</div>
+      <form method="post" action="{{ url_for('admin.release_bed', ward_id=w.id) }}" style="margin-top: 8px;">
+        <button type="submit" class="btn btn-ghost btn-sm" style="font-size: 0.7rem; padding: 4px;">Release</button>
+      </form>
+      {% else %}
+      <form method="post" action="{{ url_for('admin.assign_bed', ward_id=w.id) }}" style="margin-top: 8px;">
+        <select name="patient_id" class="input" style="font-size: 0.75rem; padding: 4px; margin-bottom: 4px;">
+          <option value="">Assign...</option>
+          {% for p in patients %}
+          <option value="{{ p.id }}">{{ p.name }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm" style="font-size: 0.7rem; padding: 4px; width: 100%;">Assign</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

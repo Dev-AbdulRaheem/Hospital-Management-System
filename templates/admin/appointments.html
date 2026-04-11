@@ -1,0 +1,45 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Appointments{% endblock %}
+{% block sidebar %}
+{% set nav_active = 'appts' %}
+{% include 'admin/sidebar_snippet.html' %}
+{% endblock %}
+{% block mobile_nav_inner %}
+{% include 'admin/mobile_nav_snippet.html' %}
+{% endblock %}
+{% block dashboard_content %}
+<header class="section-head row-between">
+  <div>
+    <h1>Appointments</h1>
+    <p class="muted">Review and manage bookings.</p>
+  </div>
+  <a href="{{ url_for('admin.add_appointment') }}" class="btn btn-primary">+ Add Appointment</a>
+</header>
+
+<section class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Date</th><th>Time</th><th>Patient</th><th>Doctor</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for a in appointments %}
+        <tr>
+          <td>{{ a.appointment_date.strftime('%Y-%m-%d') }}</td>
+          <td>{{ slot_label(a.time_slot) }}</td>
+          <td>{{ a.patient.name }}</td>
+          <td>{{ a.doctor.name }}</td>
+          <td><span class="badge">{{ a.status }}</span></td>
+          <td style="text-align:right; white-space:nowrap;">
+            <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.appointments_edit', aid=a.id) }}">Edit</a>
+            <form style="display:inline;" method="post" action="{{ url_for('admin.appointments_delete', aid=a.id) }}" onsubmit="return confirm('Delete?');">
+              <button type="submit" class="btn btn-ghost btn-sm">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

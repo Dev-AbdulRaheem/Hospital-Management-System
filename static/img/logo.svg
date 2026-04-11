@@ -1,0 +1,6 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Medical Cross -->
+  <path d="M14 6H26V14H34V26H26V34H14V26H6V14H14V6Z" fill="#008080"/>
+  <!-- Pulse Line -->
+  <path d="M6 20H12L15 14L20 26L25 14L28 20H34" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

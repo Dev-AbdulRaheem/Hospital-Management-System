@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dash">
+  <aside class="dash-side" aria-label="Dashboard navigation">
+    {% block sidebar %}{% endblock %}
+  </aside>
+  <div class="dash-main">
+    {% block mobile_nav %}
+    <div class="dash-mobile-nav">
+      {% block mobile_nav_inner %}{% endblock %}
+    </div>
+    {% endblock %}
+    {% block dashboard_content %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

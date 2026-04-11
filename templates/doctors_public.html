@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Our Doctors — CuraHealth{% endblock %}
+{% block content %}
+<section class="section section-alt">
+  <div class="wrap">
+    <header class="section-head center">
+      <p class="kicker">Our Experts</p>
+      <h1>Meet Our Medical Staff</h1>
+      <p class="lead">Search and filter our team of 20+ world-class specialists.</p>
+    </header>
+
+    <!-- Search & Filter Bar -->
+    <div class="card" style="margin-bottom: 40px;">
+      <form method="get" action="{{ url_for('public.doctors_page') }}" class="row-between">
+        <div class="field" style="flex: 1; min-width: 250px;">
+          <input type="text" name="q" class="input" placeholder="Search by name or specialization..." value="{{ search_query or '' }}">
+        </div>
+        <div class="field" style="min-width: 200px;">
+          <select name="dept" class="input">
+            <option value="">All Departments</option>
+            {% for d in departments %}
+            <option value="{{ d.id }}" {% if selected_dept == d.id %}selected{% endif %}>{{ d.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Search Doctors</button>
+      </form>
+    </div>
+
+    <div class="grid grid-3">
+      {% for doc in doctors %}
+      <article class="card card-click" onclick="location.href='{{ url_for('public.doctor_detail', doctor_id=doc.id) }}'">
+        <div style="position: relative; height: 200px; overflow: hidden; border-radius: 12px; margin-bottom: 16px;">
+          {% if doc.image_url %}
+          <img src="{{ doc.image_url }}" 
+               alt="{{ doc.name }}" 
+               style="width: 100%; height: 100%; object-fit: cover;">
+          {% else %}
+          <img src="{{ url_for('static', filename='img/doctor-placeholder.jpg') }}" 
+               alt="{{ doc.name }}" 
+               style="width: 100%; height: 100%; object-fit: cover;">
+          {% endif %}
+          <div class="badge badge-success" style="position: absolute; top: 12px; right: 12px;">{{ doc.department.name if doc.department else 'Specialist' }}</div>
+        </div>
+        <h3 class="card-title">{{ doc.name }}</h3>
+        <p class="muted small">{{ doc.experience_years }} years of clinical experience</p>
+        <p class="small muted" style="margin-top: 8px;">{{ doc.bio[:80] }}...</p>
+        <div class="card-actions">
+          <a href="{{ url_for('public.doctor_detail', doctor_id=doc.id) }}" class="btn btn-secondary btn-sm">View Full Profile</a>
+          <a href="{{ url_for('patient.book', doctor_id=doc.id) }}" class="btn btn-primary btn-sm">Book Appointment</a>
+        </div>
+      </article>
+      {% else %}
+      <div class="center" style="grid-column: 1 / -1; padding: 40px;">
+        <p class="muted">No doctors found matching your search.</p>
+        <a href="{{ url_for('public.doctors_page') }}" class="btn btn-ghost">Clear Filters</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block extra_js %}
+{% endblock %}

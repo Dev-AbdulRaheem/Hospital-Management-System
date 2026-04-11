@@ -1,0 +1,41 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Manage Patients{% endblock %}
+{% block sidebar %}
+{% set nav_active = 'patients' %}
+{% include 'admin/sidebar_snippet.html' %}
+{% endblock %}
+{% block mobile_nav_inner %}
+{% include 'admin/mobile_nav_snippet.html' %}
+{% endblock %}
+{% block dashboard_content %}
+<header class="section-head row-between">
+  <div>
+    <h1>Patients</h1>
+    <p class="muted small">Create, edit, or remove patient accounts.</p>
+  </div>
+  <a href="{{ url_for('admin.patients_add') }}" class="btn btn-primary btn-sm">Add patient</a>
+</header>
+
+<section class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th></th></tr></thead>
+      <tbody>
+        {% for p in patients %}
+        <tr>
+          <td>{{ p.name }}</td>
+          <td>{{ p.email }}</td>
+          <td>{{ p.phone or '—' }}</td>
+          <td style="text-align:right; white-space:nowrap;">
+            <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.patients_edit', pid=p.id) }}">Edit</a>
+            <form style="display:inline;" method="post" action="{{ url_for('admin.patients_delete', pid=p.id) }}" onsubmit="return confirm('Delete this patient?');">
+              <button type="submit" class="btn btn-ghost btn-sm">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

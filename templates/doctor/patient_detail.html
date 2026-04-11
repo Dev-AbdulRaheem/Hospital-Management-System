@@ -1,0 +1,118 @@
+{% extends "dashboard_base.html" %}
+{% block title %}EHR — {{ patient.name }}{% endblock %}
+
+{% block dashboard_content %}
+<header class="section-head row-between">
+  <div>
+    <h1>{{ patient.name }}</h1>
+    <p class="lead">DOB: {{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else '—' }} · {{ patient.gender or '—' }} · {{ patient.phone or '—' }}</p>
+  </div>
+  <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-secondary btn-sm">← Back to Dashboard</a>
+</header>
+
+<div class="ehr-container">
+  <!-- Left Side: Timeline of Past Visits -->
+  <aside class="ehr-timeline">
+    <h2 class="h6" style="margin-bottom: 20px;">Medical History</h2>
+    {% if past_appointments %}
+      {% for a in past_appointments %}
+      <div class="timeline-item">
+        <div class="small muted">{{ a.appointment_date.strftime('%B %d, %Y') }} at {{ slot_label(a.time_slot) }}</div>
+        <div style="font-weight: 700; margin: 4px 0;">{{ a.diagnosis or 'No Diagnosis' }}</div>
+        <div class="small text-muted">{{ a.notes[:100] }}{{ '...' if a.notes|length > 100 else '' }}</div>
+        {% if a.vitals_bp or a.vitals_temp or a.vitals_weight %}
+        <div class="small" style="margin-top: 8px;">
+          {% if a.vitals_bp %}<span class="badge badge-warn">BP: {{ a.vitals_bp }}</span>{% endif %}
+          {% if a.vitals_heart_rate %}<span class="badge badge-warn">HR: {{ a.vitals_heart_rate }}</span>{% endif %}
+          {% if a.vitals_temp %}<span class="badge badge-warn">Temp: {{ a.vitals_temp }}</span>{% endif %}
+          {% if a.vitals_weight %}<span class="badge badge-warn">Weight: {{ a.vitals_weight }}</span>{% endif %}
+        </div>
+        {% endif %}
+        {% if a.ordered_tests %}
+        <div class="small text-muted" style="margin-top: 4px;"><strong>Tests:</strong> {{ a.ordered_tests }}</div>
+        {% endif %}
+        <a href="?edit_appt_id={{ a.id }}" class="btn btn-ghost btn-sm" style="margin-top: 8px; padding: 2px 8px;">Edit Record</a>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted">No past records found.</p>
+    {% endif %}
+  </aside>
+
+  <!-- Right Side: Active Consultation -->
+  <main class="ehr-consultation">
+    <h2 class="h6" style="margin-bottom: 20px;">Active Consultation</h2>
+    {% if active_appointment %}
+    <div style="margin-bottom: 12px;" class="muted small text-right">Editing Record for {{ active_appointment.appointment_date.strftime('%B %d, %Y') }}</div>
+    <form method="post" action="{{ url_for('doctor.update_appointment', appt_id=active_appointment.id) }}" class="form card">
+      <div class="vitals-grid">
+        <div class="field">
+          <label>Blood Pressure</label>
+          <input type="text" class="input" name="vitals_bp" value="{{ active_appointment.vitals_bp or '' }}" placeholder="120/80">
+        </div>
+        <div class="field">
+          <label>Temperature (°C)</label>
+          <input type="text" class="input" name="vitals_temp" value="{{ active_appointment.vitals_temp or '' }}" placeholder="36.5">
+        </div>
+        <div class="field">
+          <label>Weight (kg)</label>
+          <input type="text" class="input" name="vitals_weight" value="{{ active_appointment.vitals_weight or '' }}" placeholder="70">
+        </div>
+        <div class="field">
+          <label>Heart Rate (bpm)</label>
+          <input type="text" class="input" name="vitals_heart_rate" value="{{ active_appointment.vitals_heart_rate or '' }}" placeholder="72">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Symptoms</label>
+        <textarea class="input" name="symptoms" rows="2" placeholder="Patient reported symptoms...">{{ active_appointment.symptoms or '' }}</textarea>
+      </div>
+
+      <div class="field">
+        <label>Diagnosis</label>
+        <textarea class="input" name="diagnosis" rows="3" placeholder="Enter diagnosis...">{{ active_appointment.diagnosis or '' }}</textarea>
+      </div>
+      
+      <div class="field">
+        <label>Prescription</label>
+        <textarea class="input" name="prescription" rows="3" placeholder="Enter medication and dosage...">{{ active_appointment.prescription or '' }}</textarea>
+      </div>
+
+      <div class="field">
+        <label>Order Lab Tests (Comma separated)</label>
+        <input type="text" class="input" name="ordered_tests" value="{{ active_appointment.ordered_tests or '' }}" placeholder="Blood Test, MRI, X-Ray">
+      </div>
+
+      <div class="field">
+        <label>Lab Results Link</label>
+        <input type="text" class="input" name="lab_result_link" value="{{ active_appointment.lab_result_link or '' }}" placeholder="https://labs.system/... (Optional)">
+      </div>
+
+      <div class="field">
+        <label>Clinical Notes</label>
+        <textarea class="input" name="notes" rows="3" placeholder="Additional notes...">{{ active_appointment.notes or '' }}</textarea>
+      </div>
+
+      <div class="row-between" style="margin-top: 20px;">
+        <div class="field" style="flex: 1; max-width: 200px;">
+          <label>Visit Status</label>
+          <select class="input" name="status">
+            <option value="scheduled" {% if active_appointment.status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+            <option value="completed" {% if active_appointment.status == 'completed' %}selected{% endif %}>Completed</option>
+            <option value="cancelled" {% if active_appointment.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            <option value="missed" {% if active_appointment.status == 'missed' %}selected{% endif %}>Missed</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Complete Consultation & Save</button>
+      </div>
+    </form>
+    {% else %}
+      <div class="card" style="text-align: center; padding: 40px;">
+        <p class="muted">No active appointment selected.</p>
+        <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-secondary">Return to Dashboard</a>
+      </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

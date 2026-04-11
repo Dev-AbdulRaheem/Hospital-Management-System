@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ department.name }} — CuraHealth{% endblock %}
+{% block content %}
+<section class="hero" style="background: linear-gradient(135deg, #008080 0%, #004d40 100%); color: white; padding: 60px 0;">
+  <div class="wrap hero-inner" style="text-align: center; display: block;">
+    <p class="kicker" style="color: rgba(255,255,255,0.8);">Department of</p>
+    <h1 style="color: white; margin-bottom: 10px;">{{ department.name }}</h1>
+    <p class="lead" style="color: rgba(255,255,255,0.9); margin: 0 auto;">Comprehensive and specialized medical care tailored to your needs.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="grid grid-2" style="gap: 40px; align-items: start;">
+      <div>
+        <h2 class="h6" style="font-size: 1.5rem; margin-bottom: 20px; color: var(--primary);">Clinical Excellence</h2>
+        <div class="lead" style="max-width: 100%; text-align: justify;">
+          {{ department.description or "Our " + department.name + " department is dedicated to providing world-class medical services using the latest technology and clinical practices. We focus on patient-centered care, ensuring that every individual receives personalized treatment plans and the highest level of professional attention." }}
+          <p style="margin-top: 20px;">
+            At CuraHealth, we understand the importance of specialized knowledge. Our {{ department.name }} team consists of highly trained experts who are leaders in their respective fields, committed to improving patient outcomes through innovation and compassionate care.
+          </p>
+        </div>
+      </div>
+      <div class="card" style="background: var(--card2); border: none;">
+        <h3 class="h6">Why Choose Our {{ department.name }} Dept?</h3>
+        <ul class="checklist" style="list-style: none; padding: 0;">
+          <li style="margin-bottom: 12px; display: flex; gap: 10px; align-items: center;">
+            <span style="color: var(--primary); font-weight: 800;">✓</span> Advanced Diagnostic Tools
+          </li>
+          <li style="margin-bottom: 12px; display: flex; gap: 10px; align-items: center;">
+            <span style="color: var(--primary); font-weight: 800;">✓</span> Expert Multi-disciplinary Team
+          </li>
+          <li style="margin-bottom: 12px; display: flex; gap: 10px; align-items: center;">
+            <span style="color: var(--primary); font-weight: 800;">✓</span> 24/7 Emergency Support
+          </li>
+          <li style="margin-bottom: 12px; display: flex; gap: 10px; align-items: center;">
+            <span style="color: var(--primary); font-weight: 800;">✓</span> Personalized Treatment Plans
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="wrap">
+    <header class="section-head center">
+      <p class="kicker">Specialists</p>
+      <h2>Doctors in {{ department.name }}</h2>
+      <p class="lead">Consult with our experienced medical professionals.</p>
+    </header>
+    
+    <div class="grid grid-3">
+      {% for doc in doctors %}
+      <article class="card card-click" onclick="location.href='{{ url_for('public.doctor_detail', doctor_id=doc.id) }}'">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="{{ doc.image_url }}" alt="{{ doc.name }}" style="width: 120px; height: 120px; border-radius: 50%; background: white; border: 3px solid var(--border);">
+        </div>
+        <h3 class="card-title" style="text-align: center;">{{ doc.name }}</h3>
+        <p class="muted small" style="text-align: center; margin-bottom: 15px;">{{ doc.experience_years }}+ Years Experience</p>
+        <div class="card-actions" style="justify-content: center;">
+          <a href="{{ url_for('public.doctor_detail', doctor_id=doc.id) }}" class="btn btn-secondary btn-sm">Profile</a>
+          <a href="{{ url_for('patient.login', doctor_id=doc.id) }}" class="btn btn-primary btn-sm">Book</a>
+        </div>
+      </article>
+      {% else %}
+      <div class="center" style="grid-column: 1 / -1; padding: 40px;">
+        <p class="muted">No doctors currently listed in this department.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

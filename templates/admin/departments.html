@@ -1,0 +1,97 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Departments{% endblock %}
+{% block sidebar %}
+{% set nav_active = 'dept' %}
+{% include 'admin/sidebar_snippet.html' %}
+{% endblock %}
+{% block mobile_nav_inner %}
+{% include 'admin/mobile_nav_snippet.html' %}
+{% endblock %}
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block dashboard_content %}
+<header class="section-head row-between">
+  <div>
+    <h1>Department Management</h1>
+    <p class="muted">Manage medical departments and view staffing distribution.</p>
+  </div>
+  <button type="button" class="btn btn-primary" onclick="document.getElementById('addDeptForm').scrollIntoView({behavior:'smooth'})">+ New Department</button>
+</header>
+
+<div class="grid grid-2" style="gap: 24px; margin-bottom: 32px; align-items: start;">
+  <section class="card">
+    <h2 class="h6">Doctor Distribution</h2>
+    <div style="height: 300px;">
+      <canvas id="deptBarChart"></canvas>
+    </div>
+  </section>
+
+  <section class="card" id="addDeptForm">
+    <h2 class="h6">Add Department</h2>
+    <form method="post" action="{{ url_for('admin.departments') }}" class="form">
+      <div class="field">
+        <label>Department Name</label>
+        <input type="text" name="name" class="input" placeholder="e.g., Cardiology" required>
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea name="description" class="input" rows="3" placeholder="Long-form description for the public page..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Create Department</button>
+    </form>
+  </section>
+</div>
+
+<section class="card">
+  <h2 class="h6">All Departments</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description Preview</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in departments %}
+        <tr>
+          <td style="font-weight: 600;">{{ d.name }}</td>
+          <td class="small muted">{{ d.description[:100] }}...</td>
+          <td>
+            <a href="{{ url_for('public.department_detail', dept_id=d.id) }}" class="btn btn-ghost btn-sm" target="_blank">Public Page</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+  const barCtx = document.getElementById('deptBarChart').getContext('2d');
+  new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: {{ chart_labels | tojson }},
+      datasets: [{
+        label: 'Doctors',
+        data: {{ chart_values | tojson }},
+        backgroundColor: '#008080',
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, grid: { display: false } },
+        x: { grid: { display: false } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+</script>
+{% endblock %}

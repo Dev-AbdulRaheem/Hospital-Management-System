@@ -1,0 +1,45 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Reports{% endblock %}
+{% block sidebar %}
+{% set nav_active = 'reports' %}
+{% include 'admin/sidebar_snippet.html' %}
+{% endblock %}
+{% block mobile_nav_inner %}
+{% include 'admin/mobile_nav_snippet.html' %}
+{% endblock %}
+{% block dashboard_content %}
+<header class="section-head">
+  <h1>Reports &amp; analytics</h1>
+  <p class="muted small">Quick overview for demo purposes.</p>
+</header>
+
+<div class="grid grid-2">
+  <section class="card">
+    <h2 class="h6">Doctors per department</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Department</th><th>Doctors</th></tr></thead>
+        <tbody>
+          {% for name, cnt in by_dept %}
+          <tr><td>{{ name }}</td><td>{{ cnt }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="h6">Appointments by status</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Status</th><th>Count</th></tr></thead>
+        <tbody>
+          {% for st, cnt in appt_by_status %}
+          <tr><td>{{ st }}</td><td>{{ cnt }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

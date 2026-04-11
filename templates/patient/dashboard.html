@@ -1,0 +1,275 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Patient Dashboard{% endblock %}
+{% block sidebar %}
+<nav class="side-nav">
+  <div class="side-title">Patient</div>
+  <a class="nav-link active" href="{{ url_for('patient.dashboard') }}">Dashboard</a>
+  <a class="nav-link" href="{{ url_for('patient.book') }}">Book appointment</a>
+  <a class="nav-link" href="{{ url_for('patient.logout') }}">Logout</a>
+</nav>
+{% endblock %}
+{% block mobile_nav_inner %}
+<div class="mobile-actions">
+  <a class="btn btn-secondary btn-sm" href="{{ url_for('patient.dashboard') }}">Dashboard</a>
+  <a class="btn btn-secondary btn-sm" href="{{ url_for('patient.book') }}">Book</a>
+  <a class="btn btn-ghost btn-sm" href="{{ url_for('patient.logout') }}">Logout</a>
+</div>
+{% endblock %}
+{% block dashboard_content %}
+<header class="section-head">
+  <h1>Welcome, {{ patient.name }}</h1>
+  <p class="muted">Your personal health portal.</p>
+</header>
+
+<div class="grid grid-3" style="margin-bottom: 24px;">
+  <div class="card" style="border-top: 4px solid var(--primary); padding: 16px;">
+    <div class="stat" style="font-size: 1.5rem;">{{ stats.total_visits }}</div>
+    <div class="muted small">Total Visits</div>
+  </div>
+  <div class="card" style="border-top: 4px solid var(--primary); padding: 16px;">
+    <div class="stat" style="font-size: 1.5rem;">{{ stats.next_appt }}</div>
+    <div class="muted small">Next Appointment</div>
+  </div>
+  <div class="card" style="border-top: 4px solid var(--primary); padding: 16px;">
+    <div class="stat" style="font-size: 1.5rem;">{{ stats.pending_bills }}</div>
+    <div class="muted small">Pending Bills</div>
+  </div>
+</div>
+
+<div class="grid grid-2" style="gap: 24px; margin-bottom: 24px;">
+  <section class="card">
+    <h2 class="h6">Personal Details</h2>
+    <div class="grid grid-2" style="gap: 16px; font-size: 0.9rem;">
+      <div>
+        <label class="muted small">Email</label>
+        <div style="font-weight: 600;">{{ patient.email }}</div>
+      </div>
+      <div>
+        <label class="muted small">Phone</label>
+        <div style="font-weight: 600;">{{ patient.phone or '—' }}</div>
+      </div>
+      <div>
+        <label class="muted small">Gender</label>
+        <div style="font-weight: 600;">{{ patient.gender or '—' }}</div>
+      </div>
+      <div>
+        <label class="muted small">Date of Birth</label>
+        <div style="font-weight: 600;">{{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else '—' }} (Age: {{ patient.age if patient.age is not none else '—' }})</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="h6">Quick Actions</h2>
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <a href="{{ url_for('patient.book') }}" class="btn btn-primary">Book New Appointment</a>
+      <a href="{{ url_for('public.index') }}" class="btn btn-secondary">Hospital Home</a>
+    </div>
+  </section>
+</div>
+
+<section class="card" style="margin-top: 14px;">
+  <h2 class="h6">Upcoming appointments</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Time</th><th>Doctor</th><th>Department</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for a in upcoming %}
+        <tr>
+          <td>{{ a.appointment_date.strftime('%Y-%m-%d') }}</td>
+          <td>{{ slot_label(a.time_slot) }}</td>
+          <td>{{ a.doctor.name }}</td>
+          <td>{{ a.doctor.department.name if a.doctor.department else '—' }}</td>
+          <td><span class="badge">{{ a.status }}</span></td>
+          <td>
+            <form method="post" action="{{ url_for('patient.cancel_appointment', appt_id=a.id) }}" onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
+              <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="muted" style="text-align:center; padding: 16px;">No upcoming appointments.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card" style="margin-top: 24px;">
+  <h2 class="h6">Appointment History & Medical Records</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Doctor</th><th>Diagnosis</th><th>Prescription</th><th>Reports</th><th>Billing</th></tr></thead>
+      <tbody>
+        {% for a in history %}
+        <tr>
+          <td>{{ a.appointment_date.strftime('%Y-%m-%d') }} at {{ slot_label(a.time_slot) }}</td>
+          <td>{{ a.doctor.name }}</td>
+          <td>{{ a.diagnosis or '—' }}</td>
+          <td>
+            {% if a.prescription %}
+            <button class="btn btn-secondary btn-sm view-prescription-btn" 
+                    data-date="{{ a.appointment_date.strftime('%Y-%m-%d') }} at {{ slot_label(a.time_slot) }}"
+                    data-doctor="{{ a.doctor.name }}"
+                    data-prescription="{{ a.prescription }}"
+                    data-tests="{{ a.ordered_tests or 'None' }}"
+                    data-lablink="{{ a.lab_result_link or '' }}"
+                    data-vitals="BP: {{ a.vitals_bp or '—' }} | Temp: {{ a.vitals_temp or '—' }} | Wt: {{ a.vitals_weight or '—' }} | HR: {{ a.vitals_heart_rate or '—' }}"
+                    data-notes="{{ a.notes or 'No additional notes provided.' }}">
+              View
+            </button>
+            {% else %}
+            —
+            {% endif %}
+          </td>
+          <td>
+            {% if a.lab_report_path %}
+            <a href="#" class="btn btn-secondary btn-sm">View Report</a>
+            {% else %}
+            —
+            {% endif %}
+          </td>
+          <td>
+            {% if a.invoice_amount > 0 %}
+              {% if a.is_paid %}
+              <span class="badge badge-success">Paid</span>
+              {% else %}
+              <button class="btn btn-primary btn-sm pay-btn" data-appt-id="{{ a.id }}" data-amount="{{ a.invoice_amount }}">Pay ${{ a.invoice_amount }}</button>
+              {% endif %}
+            {% else %}
+            —
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="muted" style="text-align:center; padding: 16px;">No past visits yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Prescription Modal -->
+<div class="modal-backdrop" id="prescriptionModal" aria-hidden="true">
+  <section class="modal" role="dialog" aria-modal="true">
+    <header class="modal-head">
+      <h3 class="modal-title">Clinical Record - <span id="recordDate"></span></h3>
+      <button type="button" class="icon-btn" data-modal-close>×</button>
+    </header>
+    <div class="modal-body">
+      <div style="margin-bottom: 20px;">
+        <label class="muted small uppercase" style="display: block; letter-spacing: 0.05em; margin-bottom: 4px;">Consulting Doctor</label>
+        <div id="recordDoctor" style="font-weight: 600; font-size: 1.1rem; color: var(--primary);"></div>
+      </div>
+      
+      <div class="card" style="background: var(--bg-body); border-left: 4px solid var(--primary); margin-bottom: 16px;">
+        <label class="muted small uppercase" style="display: block; letter-spacing: 0.05em; margin-bottom: 8px;">Prescription</label>
+        <div id="recordPrescription" style="white-space: pre-wrap; line-height: 1.6;"></div>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label class="muted small uppercase" style="display: block; letter-spacing: 0.05em; margin-bottom: 4px;">Vitals</label>
+        <div id="recordVitals" class="small" style="font-weight: 500;"></div>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label class="muted small uppercase" style="display: block; letter-spacing: 0.05em; margin-bottom: 4px;">Ordered Lab Tests</label>
+        <div id="recordTests" class="small" style="font-weight: 500;"></div>
+        <div id="recordLabLinkContainer" style="margin-top: 4px; display: none;">
+          <a id="recordLabLink" href="#" target="_blank" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 0.8rem;">View Lab Results</a>
+        </div>
+      </div>
+
+      <div>
+        <label class="muted small uppercase" style="display: block; letter-spacing: 0.05em; margin-bottom: 4px;">Additional Notes</label>
+        <div id="recordNotes" class="muted" style="white-space: pre-wrap; font-style: italic;"></div>
+      </div>
+    </div>
+    <footer class="modal-foot">
+      <button type="button" class="btn btn-secondary" onclick="window.print()">Print Record</button>
+      <button type="button" class="btn btn-ghost" data-modal-close>Close</button>
+    </footer>
+  </section>
+</div>
+
+<!-- Mock Payment Modal -->
+<div class="modal-backdrop" id="paymentModal" aria-hidden="true">
+  <section class="modal" role="dialog" aria-modal="true">
+    <header class="modal-head">
+      <h3 class="modal-title">Mock Payment Gateway</h3>
+      <button type="button" class="icon-btn" data-modal-close>×</button>
+    </header>
+    <div class="modal-body">
+      <p class="lead">Complete your payment of <strong id="payAmount"></strong></p>
+      <form id="paymentForm" class="form">
+        <input type="hidden" id="payApptId">
+        <div class="field">
+          <label>Card Number</label>
+          <input type="text" class="input" placeholder="4444 4444 4444 4444" maxlength="19">
+        </div>
+        <div class="vitals-grid">
+          <div class="field">
+            <label>Expiry</label>
+            <input type="text" class="input" placeholder="MM/YY">
+          </div>
+          <div class="field">
+            <label>CVV</label>
+            <input type="password" class="input" placeholder="***">
+          </div>
+        </div>
+      </form>
+    </div>
+    <footer class="modal-foot">
+      <button type="button" class="btn btn-primary" id="confirmPayBtn">Pay Now</button>
+      <button type="button" class="btn btn-ghost" data-modal-close>Cancel</button>
+    </footer>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Prescription Modal Logic
+document.querySelectorAll(".view-prescription-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.getElementById("recordDate").textContent = btn.dataset.date;
+    document.getElementById("recordDoctor").textContent = "Dr. " + btn.dataset.doctor;
+    document.getElementById("recordPrescription").textContent = btn.dataset.prescription;
+    document.getElementById("recordTests").textContent = btn.dataset.tests;
+    
+    if (btn.dataset.lablink) {
+      document.getElementById("recordLabLinkContainer").style.display = "block";
+      document.getElementById("recordLabLink").href = btn.dataset.lablink;
+    } else {
+      document.getElementById("recordLabLinkContainer").style.display = "none";
+    }
+
+    document.getElementById("recordVitals").textContent = btn.dataset.vitals;
+    document.getElementById("recordNotes").textContent = btn.dataset.notes;
+    window.HMSModal.open("prescriptionModal");
+  });
+});
+
+// Payment Modal Logic
+document.querySelectorAll(".pay-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.getElementById("payAmount").textContent = "$" + btn.dataset.amount;
+    document.getElementById("payApptId").value = btn.dataset.apptId;
+    window.HMSModal.open("paymentModal");
+  });
+});
+
+document.getElementById("confirmPayBtn").addEventListener("click", () => {
+  const apptId = document.getElementById("payApptId").value;
+  fetch(`/patient/appointment/${apptId}/pay`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        location.reload();
+      } else {
+        alert("Payment failed. Please try again.");
+      }
+    });
+});
+</script>
+{% endblock %}

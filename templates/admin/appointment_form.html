@@ -1,0 +1,66 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Add Appointment — CuraHealth{% endblock %}
+{% block sidebar %}
+{% set nav_active = 'appts' %}
+{% include 'admin/sidebar_snippet.html' %}
+{% endblock %}
+{% block dashboard_content %}
+<header class="section-head">
+  <h1>Add New Appointment</h1>
+  <p class="muted">Register a new appointment for a patient.</p>
+</header>
+
+<section class="card">
+  <form method="post" action="{{ url_for('admin.appointments_edit', aid=appointment.id) if appointment else url_for('admin.add_appointment') }}" class="form">
+    <div class="field">
+      <label for="patient_id">Patient</label>
+      <select class="input" id="patient_id" name="patient_id" required>
+        <option value="">— Select Patient —</option>
+        {% for p in patients %}
+        <option value="{{ p.id }}" {% if appointment and appointment.patient_id == p.id %}selected{% endif %}>{{ p.name }} ({{ p.email }})</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="doctor_id">Doctor</label>
+      <select class="input" id="doctor_id" name="doctor_id" required>
+        <option value="">— Select Doctor —</option>
+        {% for d in doctors %}
+        <option value="{{ d.id }}" {% if appointment and appointment.doctor_id == d.id %}selected{% endif %}>{{ d.name }} ({{ d.department.name }})</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="appointment_date">Appointment Date</label>
+      <input type="date" class="input" id="appointment_date" name="appointment_date" required value="{{ appointment.appointment_date.strftime('%Y-%m-%d') if appointment else '' }}">
+    </div>
+
+    <div class="field">
+      <label for="time_slot">Time Slot</label>
+      <select class="input" id="time_slot" name="time_slot" required>
+        <option value="">— Select Time —</option>
+        {% for slot in all_slots %}
+        <option value="{{ slot }}" {% if appointment and appointment.time_slot == slot %}selected{% endif %}>{{ slot_label(slot) }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="status">Status</label>
+      <select class="input" id="status" name="status" required>
+        <option value="scheduled" {% if appointment and appointment.status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+        <option value="completed" {% if appointment and appointment.status == 'completed' %}selected{% endif %}>Completed</option>
+        <option value="cancelled" {% if appointment and appointment.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        <option value="missed" {% if appointment and appointment.status == 'missed' %}selected{% endif %}>Missed</option>
+      </select>
+    </div>
+
+    <div class="card-actions">
+      <button type="submit" class="btn btn-primary">Add Appointment</button>
+      <a href="{{ url_for('admin.appointments_list') }}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

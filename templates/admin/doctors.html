@@ -1,0 +1,84 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Manage Doctors{% endblock %}
+{% block sidebar %}
+{% set nav_active = 'doctors' %}
+{% include 'admin/sidebar_snippet.html' %}
+{% endblock %}
+{% block mobile_nav_inner %}
+{% include 'admin/mobile_nav_snippet.html' %}
+{% endblock %}
+{% block dashboard_content %}
+<header class="section-head row-between">
+  <div>
+    <h1>Doctor Directory</h1>
+    <p class="muted">Manage medical staff and department assignments.</p>
+  </div>
+  <a href="{{ url_for('admin.doctors_add') }}" class="btn btn-primary">+ Add Doctor</a>
+</header>
+
+<!-- Filter Bar -->
+<div class="card" style="margin-bottom: 24px;">
+  <form method="get" action="{{ url_for('admin.doctors_list') }}" class="row-between" style="gap: 16px;">
+    <div class="field" style="flex: 1;">
+      <input type="text" name="q" class="input" placeholder="Search doctor name..." value="{{ search_query or '' }}">
+    </div>
+    <div class="field" style="min-width: 200px;">
+      <select name="dept" class="input">
+        <option value="">All Departments</option>
+        {% for d in departments %}
+        <option value="{{ d.id }}" {% if selected_dept == d.id %}selected{% endif %}>{{ d.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-secondary">Filter</button>
+  </form>
+</div>
+
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Doctor</th>
+        <th>Department</th>
+        <th>Fee</th>
+        <th>Experience</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in doctors %}
+      <tr>
+        <td>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            {% if d.image_url %}
+            <img src="{{ d.image_url }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+            {% else %}
+            <img src="{{ url_for('static', filename='img/doctor-placeholder.jpg') }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+            {% endif %}
+            <div>
+              <div style="font-weight: 600;">{{ d.name }}</div>
+              <div class="small muted">{{ d.email }}</div>
+            </div>
+          </div>
+        </td>
+        <td>{{ d.department.name }}</td>
+        <td>₹{{ "{:,.0f}".format(d.consultation_fee or 500) }}</td>
+        <td>{{ d.experience_years }} years</td>
+        <td>
+          <span class="badge {% if d.is_active %}badge-success{% else %}badge-danger{% endif %}">
+            {{ 'Active' if d.is_active else 'Inactive' }}
+          </span>
+        </td>
+        <td>
+          <div class="row-between" style="justify-content: flex-start; gap: 8px;">
+            <a href="{{ url_for('admin.doctors_edit', did=d.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+            <a href="{{ url_for('public.doctor_detail', doctor_id=d.id) }}" class="btn btn-ghost btn-sm" target="_blank">View</a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

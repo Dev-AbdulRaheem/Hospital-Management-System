@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}CuraHealth — Smart Hospital Management{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="page">
+  {% block navbar %}
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="{{ url_for('public.index') }}" aria-label="Hospital home">
+        <span class="brand-mark" aria-hidden="true">
+          <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="CuraHealth Logo">
+        </span>
+        <span class="brand-name">CuraHealth</span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-controls="siteNav" aria-expanded="false" data-nav-toggle>
+        <span class="sr-only">Toggle navigation</span>
+        <span class="hamburger" aria-hidden="true"></span>
+      </button>
+
+      <nav class="site-nav" id="siteNav" data-nav>
+        <a class="nav-link" href="{{ url_for('public.index') }}">Home</a>
+
+        <div class="nav-dropdown" data-dropdown>
+          <button class="nav-link nav-link-btn" type="button" aria-expanded="false" data-dropdown-toggle>
+            Services
+            <span class="caret" aria-hidden="true"></span>
+          </button>
+          <div class="dropdown-panel" role="menu">
+            <div class="dropdown-scroll">
+              {% for d in nav_departments %}
+              <a class="dropdown-item" role="menuitem" href="{{ url_for('public.department_detail', dept_id=d.id) }}">{{ d.name }}</a>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <a class="nav-link" href="{{ url_for('public.doctors_page') }}">Doctors</a>
+        <a class="nav-link" href="{{ url_for('public.about') }}">About</a>
+        <a class="nav-link" href="{{ url_for('public.contact') }}">Contact</a>
+
+        <a class="btn btn-primary btn-sm nav-cta" href="{{ url_for('public.login_hub') }}">Login</a>
+      </nav>
+    </div>
+  </header>
+  {% endblock %}
+
+  <main class="site-main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="wrap flash-wrap" role="status" aria-live="polite">
+        {% for category, message in messages %}
+        <div class="flash flash-{{ 'info' if category == 'message' else category }}">
+          <div class="flash-text">{{ message }}</div>
+          <button type="button" class="flash-close" data-flash-close aria-label="Dismiss message">×</button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block footer %}
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <section class="footer-col">
+        <h2 class="footer-title">CuraHealth Hospital</h2>
+        <p class="muted">Smart Care, Brighter Health — leading the way in medical excellence since 2005.</p>
+      </section>
+      <nav class="footer-col" aria-label="Quick links">
+        <h2 class="footer-title">Quick links</h2>
+        <ul class="footer-links">
+          <li><a href="{{ url_for('public.index') }}">Home</a></li>
+          <li><a href="{{ url_for('public.doctors_page') }}">Doctors</a></li>
+          <li><a href="{{ url_for('public.contact') }}">Contact</a></li>
+          <li><a href="{{ url_for('public.login_hub') }}">Staff / Patient Login</a></li>
+        </ul>
+      </nav>
+      <section class="footer-col">
+        <h2 class="footer-title">Contact</h2>
+        <ul class="footer-links">
+          <li>100 Health Avenue, Medical District, City 400001</li>
+          <li>+1 (555) 123-4567</li>
+          <li>info@curahealth.demo</li>
+        </ul>
+        <div class="social">
+          <a class="social-link" href="#" aria-label="Facebook">Fb</a>
+          <a class="social-link" href="#" aria-label="Twitter">X</a>
+          <a class="social-link" href="#" aria-label="LinkedIn">In</a>
+          <a class="social-link" href="#" aria-label="YouTube">Yt</a>
+        </div>
+      </section>
+    </div>
+    <div class="wrap footer-bottom">
+      <small>&copy; {{ current_year }} CuraHealth Hospital. Academic demo project.</small>
+    </div>
+  </footer>
+  {% endblock %}
+
+  <section id="chatbotPanel" class="chatbot" aria-label="FAQ assistant">
+    <header class="chatbot-head">
+      <strong>FAQ Assistant</strong>
+      <button class="icon-btn" type="button" data-chatbot-close aria-label="Close chat">×</button>
+    </header>
+    <div class="chatbot-log" id="chatbotLog">
+      <div class="muted small">Ask about hours, appointments, or emergencies.</div>
+    </div>
+    <footer class="chatbot-foot">
+      <label class="sr-only" for="chatbotInput">Message</label>
+      <input type="text" class="input" id="chatbotInput" placeholder="Type a question..." maxlength="200">
+      <button class="btn btn-primary btn-sm" type="button" id="chatbotSend">Send</button>
+    </footer>
+  </section>
+  <button type="button" class="fab" id="chatbotToggle" title="FAQ chat" aria-controls="chatbotPanel" aria-expanded="false">
+    Chat
+  </button>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

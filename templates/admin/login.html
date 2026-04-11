@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Admin Login{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="wrap" style="max-width: 520px;">
+    <header class="section-head">
+      <h1>Administrator sign in</h1>
+      <p class="muted small">Demo: username <strong>admin</strong> / password <strong>admin123</strong></p>
+    </header>
+
+    <div class="card">
+      <form method="post" class="form" novalidate>
+        <div class="field">
+          <label for="username">Username</label>
+          <input class="input" id="username" name="username" required autocomplete="username">
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" class="input" id="password" name="password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary">Sign in</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

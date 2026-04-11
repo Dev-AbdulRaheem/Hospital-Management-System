@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Contact — MediCare Hospital{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="wrap" style="max-width: 760px;">
+    <header class="section-head center">
+      <h1>Contact us</h1>
+      <p class="muted">We’ll respond as soon as possible.</p>
+    </header>
+    <div class="card">
+      <form method="post" class="form" novalidate>
+        <div class="field">
+          <label for="name">Name</label>
+          <input class="input" id="name" name="name" required minlength="2" placeholder="Your full name">
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" class="input" id="email" name="email" required placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label for="message">Message</label>
+          <textarea class="input" id="message" name="message" rows="4" required minlength="10" placeholder="How can we help?"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Send message</button>
+      </form>
+    </div>
+    <p class="muted small" style="text-align:center; margin-top: 12px;">Demo form — messages are not emailed; a confirmation flash is shown.</p>
+  </div>
+</section>
+{% endblock %}
