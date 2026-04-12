@@ -42,7 +42,7 @@
         <h3>Doctor Details</h3>
         <p><strong>Dr. {{ appt.doctor.name }}</strong></p>
         <p>{{ appt.doctor.department.name if appt.doctor.department else '' }}</p>
-        <p>Reg No: {{ appt.doctor.id|string|rjust(5, '0') }}</p>
+        <p>Reg No: {{ "%05d"|format(appt.doctor.id) }}</p>
       </div>
       <div>
         <h3>Patient Details</h3>
