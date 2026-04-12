@@ -6,6 +6,7 @@
   <a class="side-link {% if nav_active == 'doctors' %}active{% endif %}" href="{{ url_for('admin.doctors_list') }}">Doctor Directory</a>
   <a class="side-link {% if nav_active == 'dept' %}active{% endif %}" href="{{ url_for('admin.departments') }}">Department Stats</a>
   <a class="side-link {% if nav_active == 'invoices' %}active{% endif %}" href="{{ url_for('admin.invoice_desk') }}">Invoice Desk</a>
+  <a class="side-link {% if nav_active == 'lab' %}active{% endif %}" href="{{ url_for('admin.lab_desk') }}">Lab Desk</a>
   <a class="side-link {% if nav_active == 'appts' %}active{% endif %}" href="{{ url_for('admin.appointments_list') }}">All Appointments</a>
   <a class="side-link" href="{{ url_for('admin.logout') }}">Sign Out</a>
 </nav>

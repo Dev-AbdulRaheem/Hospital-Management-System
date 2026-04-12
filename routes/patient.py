@@ -139,7 +139,7 @@ def logout():
     """Clear patient session."""
     session.pop("patient_id", None)
     flash("You have been signed out.", "info")
-    return redirect(url_for("public.index"))
+    return redirect(url_for("public.login_hub"))
 
 
 @patient_bp.route("/dashboard")
@@ -333,6 +333,19 @@ def cancel_appointment(appt_id):
         flash(f"Cannot cancel an appointment with status: {ap.status}.", "warning")
         
     return redirect(url_for("patient.dashboard"))
+
+
+@patient_bp.route("/prescription/<int:appt_id>")
+@patient_required
+def prescription_receipt(appt_id):
+    """Printable receipt view for a prescription."""
+    p_id = session["patient_id"]
+    ap = Appointment.query.get_or_404(appt_id)
+    if ap.patient_id != p_id:
+        flash("Unauthorized.", "danger")
+        return redirect(url_for("patient.dashboard"))
+    
+    return render_template("shared/prescription_receipt.html", appt=ap)
 
 
 @patient_bp.route("/api/available-slots")

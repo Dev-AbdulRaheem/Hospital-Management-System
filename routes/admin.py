@@ -36,7 +36,7 @@ def login():
 def logout():
     session.pop("admin_id", None)
     flash("Signed out.", "info")
-    return redirect(url_for("admin.login"))
+    return redirect(url_for("public.login_hub"))
 
 
 @admin_bp.route("/dashboard")
@@ -79,8 +79,12 @@ def dashboard():
 @admin_bp.route("/patients")
 @admin_required
 def patients_list():
-    rows = Patient.query.order_by(Patient.name).all()
-    return render_template("admin/patients.html", patients=rows)
+    q = request.args.get("q", "").strip()
+    query = Patient.query
+    if q:
+        query = query.filter(db.or_(Patient.name.ilike(f"%{q}%"), Patient.phone.ilike(f"%{q}%")))
+    rows = query.order_by(Patient.name).all()
+    return render_template("admin/patients.html", patients=rows, search_query=q)
 
 
 @admin_bp.route("/patients/add", methods=["GET", "POST"])
@@ -371,6 +375,7 @@ def appointments_edit(aid):
                 doctors=doctors,
                 patients=patients,
                 all_slots=all_time_slots(),
+                slot_label=slot_label,
             )
         try:
             db.session.commit()
@@ -383,6 +388,7 @@ def appointments_edit(aid):
                 doctors=doctors,
                 patients=patients,
                 all_slots=all_time_slots(),
+                slot_label=slot_label,
             )
         flash("Appointment updated.", "success")
         return redirect(url_for("admin.appointments_list"))
@@ -392,6 +398,7 @@ def appointments_edit(aid):
         doctors=doctors,
         patients=patients,
         all_slots=all_time_slots(),
+        slot_label=slot_label,
     )
 
 
@@ -420,28 +427,28 @@ def add_appointment():
 
         if not patient_id or not doctor_id or not date_s or not time_slot:
             flash("All fields are required.", "danger")
-            return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots())
+            return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots(), slot_label=slot_label)
 
         try:
             adate = datetime.strptime(date_s, "%Y-%m-%d").date()
         except ValueError:
             flash("Invalid date format.", "danger")
-            return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots())
+            return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots(), slot_label=slot_label)
 
         if adate < date.today():
             flash("Cannot book appointments in the past.", "danger")
-            return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots())
+            return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots(), slot_label=slot_label)
 
         # Check doctor's unavailability
         selected_doctor = Doctor.query.get(doctor_id)
         if selected_doctor and selected_doctor.unavailability_start_date and selected_doctor.unavailability_end_date:
             if selected_doctor.unavailability_start_date <= adate <= selected_doctor.unavailability_end_date:
                 flash(f"{selected_doctor.name} is unavailable on {adate.strftime('%Y-%m-%d')}.", "danger")
-                return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots())
+                return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots(), slot_label=slot_label)
 
         if time_slot not in all_time_slots():
             flash("Invalid time slot.", "danger")
-            return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots())
+            return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots(), slot_label=slot_label)
 
         # Double-booking check
         taken = Appointment.query.filter_by(
@@ -451,7 +458,7 @@ def add_appointment():
         ).first()
         if taken:
             flash("That slot is already taken. Please choose another time.", "warning")
-            return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots())
+            return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots(), slot_label=slot_label)
 
         new_appt = Appointment(
             patient_id=patient_id,
@@ -468,9 +475,9 @@ def add_appointment():
         except Exception as e:
             db.session.rollback()
             flash(f"Error adding appointment: {e}", "danger")
-            return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots())
+            return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots(), slot_label=slot_label)
 
-    return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots())
+    return render_template("admin/appointment_form.html", doctors=doctors, patients=patients, all_slots=all_time_slots(), slot_label=slot_label)
 
 
 # --- Departments (view + add for completeness) ---
@@ -633,3 +640,32 @@ def release_bed(ward_id):
     db.session.commit()
     flash("Bed released.", "info")
     return redirect(url_for("admin.ward_management"))
+
+
+# --- Lab Management ---
+
+@admin_bp.route("/lab-requests", methods=["GET", "POST"])
+@admin_required
+def lab_desk():
+    """Admin desk for processing pending lab requests."""
+    if request.method == "POST":
+        appt_id = request.form.get("appt_id", type=int)
+        lab_link = request.form.get("lab_result_link", "").strip()
+        
+        if appt_id and lab_link:
+            ap = Appointment.query.get_or_404(appt_id)
+            ap.lab_result_link = lab_link
+            # Once uploaded, we can mark results as completed or results_ready depending on system. 
+            # We'll set status to requested format: updating link visible to doctor and patient.
+            # We can advance status to results_ready so doctor knows.
+            if ap.status == "pending_lab":
+                ap.status = "completed" # Assuming end of consultation or just kept as 'results_ready'
+            db.session.commit()
+            flash("Lab results successfully linked.", "success")
+        return redirect(url_for("admin.lab_desk"))
+    
+    pending_requests = Appointment.query.filter_by(status="pending_lab").order_by(Appointment.appointment_date).all()
+    # Also show recently completed for visibility
+    completed_requests = Appointment.query.filter(Appointment.lab_result_link != "").order_by(Appointment.appointment_date.desc()).limit(10).all()
+    
+    return render_template("admin/lab_desk.html", pending=pending_requests, completed=completed_requests)

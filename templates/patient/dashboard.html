@@ -107,24 +107,17 @@
           <td>{{ a.doctor.name }}</td>
           <td>{{ a.diagnosis or '—' }}</td>
           <td>
-            {% if a.prescription %}
-            <button class="btn btn-secondary btn-sm view-prescription-btn" 
-                    data-date="{{ a.appointment_date.strftime('%Y-%m-%d') }} at {{ slot_label(a.time_slot) }}"
-                    data-doctor="{{ a.doctor.name }}"
-                    data-prescription="{{ a.prescription }}"
-                    data-tests="{{ a.ordered_tests or 'None' }}"
-                    data-lablink="{{ a.lab_result_link or '' }}"
-                    data-vitals="BP: {{ a.vitals_bp or '—' }} | Temp: {{ a.vitals_temp or '—' }} | Wt: {{ a.vitals_weight or '—' }} | HR: {{ a.vitals_heart_rate or '—' }}"
-                    data-notes="{{ a.notes or 'No additional notes provided.' }}">
-              View
-            </button>
+            {% if a.prescription or (a.prescription_json and a.prescription_json != "[]") %}
+            <a class="btn btn-secondary btn-sm" href="{{ url_for('patient.prescription_receipt', appt_id=a.id) }}" target="_blank">View Receipt</a>
             {% else %}
             —
             {% endif %}
           </td>
           <td>
-            {% if a.lab_report_path %}
-            <a href="#" class="btn btn-secondary btn-sm">View Report</a>
+            {% if a.lab_result_link %}
+            <a href="{{ a.lab_result_link }}" target="_blank" class="btn btn-secondary btn-sm">View Report</a>
+            {% elif a.lab_report_path %}
+            <a href="{{ url_for('static', filename=a.lab_report_path) }}" target="_blank" class="btn btn-secondary btn-sm">View Report</a>
             {% else %}
             —
             {% endif %}
@@ -229,27 +222,6 @@
 
 {% block extra_js %}
 <script>
-// Prescription Modal Logic
-document.querySelectorAll(".view-prescription-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.getElementById("recordDate").textContent = btn.dataset.date;
-    document.getElementById("recordDoctor").textContent = "Dr. " + btn.dataset.doctor;
-    document.getElementById("recordPrescription").textContent = btn.dataset.prescription;
-    document.getElementById("recordTests").textContent = btn.dataset.tests;
-    
-    if (btn.dataset.lablink) {
-      document.getElementById("recordLabLinkContainer").style.display = "block";
-      document.getElementById("recordLabLink").href = btn.dataset.lablink;
-    } else {
-      document.getElementById("recordLabLinkContainer").style.display = "none";
-    }
-
-    document.getElementById("recordVitals").textContent = btn.dataset.vitals;
-    document.getElementById("recordNotes").textContent = btn.dataset.notes;
-    window.HMSModal.open("prescriptionModal");
-  });
-});
-
 // Payment Modal Logic
 document.querySelectorAll(".pay-btn").forEach(btn => {
   btn.addEventListener("click", () => {

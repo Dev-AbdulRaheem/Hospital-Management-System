@@ -33,7 +33,7 @@ def login():
 def logout():
     session.pop("doctor_id", None)
     flash("Signed out.", "info")
-    return redirect(url_for("public.index"))
+    return redirect(url_for("public.login_hub"))
 
 
 @doctor_bp.route("/dashboard")
@@ -170,27 +170,75 @@ def patient_detail(patient_id):
         .all()
     )
     
-    edit_appt_id = request.args.get("edit_appt_id", type=int)
-    if edit_appt_id:
-        active_appointment = next((a for a in all_appts if a.id == edit_appt_id), None)
-    else:
-        active_appointment = next((a for a in all_appts if a.appointment_date == today and a.status == 'scheduled'), None)
-        if not active_appointment:
-            # Pick any scheduled or missed one
-            active_appointment = next((a for a in all_appts if a.status in ['scheduled', 'missed']), None)
-            
-    past_appointments = [a for a in all_appts if a != active_appointment]
+    past_appointments = all_appts
     
     if not all_appts:
         flash("No records for this patient under your care.", "warning")
         return redirect(url_for("doctor.dashboard"))
         
+    # Chart data extraction for BP/HR
+    chart_labels = []
+    bp_systolic = []
+    bp_diastolic = []
+    hr_data = []
+
+    for a in reversed(past_appointments):
+        if a.status in ('completed', 'scheduled', 'missed'):
+             chart_labels.append(a.appointment_date.strftime('%b %d, %Y'))
+             
+             bp = a.vitals_bp.strip() if a.vitals_bp else ""
+             if "/" in bp:
+                  try:
+                      sys, dia = bp.split("/")
+                      bp_systolic.append(int(sys))
+                      bp_diastolic.append(int(dia))
+                  except:
+                      bp_systolic.append(None)
+                      bp_diastolic.append(None)
+             else:
+                  bp_systolic.append(None)
+                  bp_diastolic.append(None)
+
+             hr = a.vitals_heart_rate.strip() if a.vitals_heart_rate else ""
+             if hr:
+                  try:
+                      hr_data.append(int(hr))
+                  except:
+                     hr_data.append(None)
+             else:
+                  hr_data.append(None)
+
     return render_template(
         "doctor/patient_detail.html",
         doctor=doc,
         patient=pat,
-        active_appointment=active_appointment,
         past_appointments=past_appointments,
+        chart_labels=chart_labels,
+        bp_systolic=bp_systolic,
+        bp_diastolic=bp_diastolic,
+        hr_data=hr_data,
+        slot_label=slot_label,
+    )
+
+
+@doctor_bp.route("/consultation/<int:appt_id>")
+@doctor_required
+def consultation(appt_id):
+    """Active consultation view for a specific appointment."""
+    doc = Doctor.query.get_or_404(session["doctor_id"])
+    active_appointment = Appointment.query.get_or_404(appt_id)
+    
+    if active_appointment.doctor_id != doc.id:
+        flash("Unauthorized access to consultation.", "danger")
+        return redirect(url_for("doctor.dashboard"))
+    
+    pat = Patient.query.get(active_appointment.patient_id)
+    
+    return render_template(
+        "doctor/consultation.html",
+        doctor=doc,
+        patient=pat,
+        active_appointment=active_appointment,
         slot_label=slot_label,
     )
 
@@ -214,14 +262,22 @@ def update_appointment(appt_id):
     # Clinical Info
     ap.symptoms = request.form.get("symptoms", "").strip()
     ap.diagnosis = request.form.get("diagnosis", "").strip()
-    ap.prescription = request.form.get("prescription", "").strip()
+    # Handle the old plain text prescription fallback, but we use json mostly now
+    # We will safely accept prescription if passed, but mostly it's prescription_json
+    if "prescription_json" in request.form:
+        ap.prescription_json = request.form.get("prescription_json", "[]").strip()
+    else:
+        ap.prescription = request.form.get("prescription", "").strip()
+        
     ap.ordered_tests = request.form.get("ordered_tests", "").strip()
-    ap.lab_result_link = request.form.get("lab_result_link", "").strip()
+    if "lab_result_link" in request.form:
+        ap.lab_result_link = request.form.get("lab_result_link", "").strip()
+        
     ap.notes = request.form.get("notes", "").strip()
     
     # Status
     status = request.form.get("status", "scheduled").strip()
-    if status in ("scheduled", "completed", "cancelled"):
+    if status in ("scheduled", "completed", "cancelled", "pending_lab", "missed"):
         # Auto-calculate invoice if completing
         if status == "completed":
             # Ensure consultation_fee is used
@@ -235,4 +291,18 @@ def update_appointment(appt_id):
         
     db.session.commit()
     flash("EHR record updated successfully.", "success")
-    return redirect(url_for("doctor.patient_detail", patient_id=ap.patient_id))
+    # Redirect correctly depending on caller? Actually, we'll redirect back to patient detail or dashboard.
+    return redirect(url_for("doctor.dashboard"))
+
+
+@doctor_bp.route("/prescription/<int:appt_id>")
+@doctor_required
+def prescription_receipt(appt_id):
+    """Printable receipt view for a prescription."""
+    doc = Doctor.query.get_or_404(session["doctor_id"])
+    ap = Appointment.query.get_or_404(appt_id)
+    if ap.doctor_id != doc.id:
+        flash("Unauthorized.", "danger")
+        return redirect(url_for("doctor.dashboard"))
+    
+    return render_template("shared/prescription_receipt.html", appt=ap)

@@ -1,0 +1,71 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Lab Requests Desk{% endblock %}
+{% block sidebar %}
+{% set nav_active = 'lab' %}
+{% include 'admin/sidebar_snippet.html' %}
+{% endblock %}
+{% block mobile_nav_inner %}
+{% include 'admin/mobile_nav_snippet.html' %}
+{% endblock %}
+{% block dashboard_content %}
+<header class="section-head">
+  <h1>Lab Requests Desk</h1>
+  <p class="muted">Upload and manage pending lab tests ordered by doctors.</p>
+</header>
+
+<div class="grid grid-2" style="gap: 24px; margin-bottom:24px;">
+    <div class="card" style="border-top: 4px solid var(--primary);">
+        <h2 class="h6">Pending Requests</h2>
+        <div style="font-size: 2rem; font-weight: bold; margin-top: 10px;">{{ pending|length }}</div>
+    </div>
+</div>
+
+<section class="card" style="margin-bottom: 32px;">
+  <h2 class="h6" style="margin-bottom: 20px;">Pending Lab Tests</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Patient</th><th>Doctor</th><th>Ordered Tests</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for a in pending %}
+        <tr>
+          <td>{{ a.appointment_date.strftime('%Y-%m-%d') }}</td>
+          <td>{{ a.patient.name }}</td>
+          <td>Dr. {{ a.doctor.name }}</td>
+          <td>{{ a.ordered_tests }}</td>
+          <td>
+            <form method="post" action="{{ url_for('admin.lab_desk') }}" style="display:flex; gap:8px;">
+              <input type="hidden" name="appt_id" value="{{ a.id }}">
+              <input type="url" name="lab_result_link" class="input input-sm" placeholder="Paste report URL..." required>
+              <button type="submit" class="btn btn-primary btn-sm">Upload</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="muted" style="text-align:center; padding: 16px;">No pending laboratory requests.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <h2 class="h6" style="margin-bottom: 20px;">Recently Processed</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Patient</th><th>Tests</th><th>Report Link</th></tr></thead>
+      <tbody>
+        {% for a in completed %}
+        <tr>
+          <td>{{ a.appointment_date.strftime('%Y-%m-%d') }}</td>
+          <td>{{ a.patient.name }}</td>
+          <td>{{ a.ordered_tests }}</td>
+          <td><a href="{{ a.lab_result_link }}" target="_blank" class="btn btn-secondary btn-sm">View Report</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="muted" style="text-align:center; padding: 16px;">No recent lab reports.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

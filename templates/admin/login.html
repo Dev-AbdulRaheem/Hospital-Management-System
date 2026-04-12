@@ -9,7 +9,7 @@
     </header>
 
     <div class="card">
-      <form method="post" class="form" novalidate>
+      <form method="post" action="{{ request.url }}" class="form" novalidate>
         <div class="field">
           <label for="username">Username</label>
           <input class="input" id="username" name="username" required autocomplete="username">

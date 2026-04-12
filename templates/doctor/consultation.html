@@ -1,0 +1,202 @@
+{% extends "dashboard_base.html" %}
+{% block title %}Consultation — {{ patient.name }}{% endblock %}
+
+{% block dashboard_content %}
+<header class="section-head row-between">
+  <div>
+    <h1>Consultation: {{ patient.name }}</h1>
+    <p class="lead">DOB: {{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else '—' }} · {{ patient.gender or '—' }} · {{ patient.phone or '—' }}</p>
+  </div>
+  <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-secondary btn-sm">← Back to Dashboard</a>
+</header>
+
+<main class="ehr-consultation">
+  <div style="margin-bottom: 24px;" class="muted small">Record for {{ active_appointment.appointment_date.strftime('%B %d, %Y') }} at {{ slot_label(active_appointment.time_slot) }}</div>
+  <form id="consultationForm" method="post" action="{{ url_for('doctor.update_appointment', appt_id=active_appointment.id) }}" class="form card">
+    <h2 class="h6" style="margin-bottom: 12px;">Vitals</h2>
+    <div class="vitals-grid">
+      <div class="field">
+        <label>Blood Pressure</label>
+        <input type="text" class="input" name="vitals_bp" value="{{ active_appointment.vitals_bp or '' }}" placeholder="120/80">
+      </div>
+      <div class="field">
+        <label>Temperature (°C)</label>
+        <input type="text" class="input" name="vitals_temp" value="{{ active_appointment.vitals_temp or '' }}" placeholder="36.5">
+      </div>
+      <div class="field">
+        <label>Weight (kg)</label>
+        <input type="text" class="input" name="vitals_weight" value="{{ active_appointment.vitals_weight or '' }}" placeholder="70">
+      </div>
+      <div class="field">
+        <label>Heart Rate (bpm)</label>
+        <input type="text" class="input" name="vitals_heart_rate" value="{{ active_appointment.vitals_heart_rate or '' }}" placeholder="72">
+      </div>
+    </div>
+
+    <h2 class="h6" style="margin-top: 16px; margin-bottom: 12px;">Clinical Details</h2>
+    <div class="field">
+      <label>Symptoms</label>
+      <textarea class="input" name="symptoms" rows="2" placeholder="Patient reported symptoms...">{{ active_appointment.symptoms or '' }}</textarea>
+    </div>
+
+    <div class="field">
+      <label>Diagnosis</label>
+      <input type="text" class="input" name="diagnosis" placeholder="Enter diagnosis..." value="{{ active_appointment.diagnosis or '' }}">
+    </div>
+    
+    <div class="field">
+      <label>Clinical Notes</label>
+      <textarea class="input" name="notes" rows="3" placeholder="Additional notes...">{{ active_appointment.notes or '' }}</textarea>
+    </div>
+
+    <hr style="margin: 24px 0;">
+    <h2 class="h6" style="margin-bottom: 12px;">Prescription System</h2>
+    
+    <input type="hidden" id="prescription_json" name="prescription_json" value="{{ active_appointment.prescription_json or '[]' }}">
+    <div id="medicineList" style="margin-bottom: 16px;"></div>
+    
+    <div class="vitals-grid" style="align-items: end;">
+        <div class="field">
+            <label>Medicine Name</label>
+            <input type="text" id="med_name" class="input" placeholder="Paracetamol">
+        </div>
+        <div class="field">
+            <label>Dosage</label>
+            <input type="text" id="med_dosage" class="input" placeholder="500mg (1-0-1)">
+        </div>
+        <div class="field">
+            <label>Duration</label>
+            <input type="text" id="med_duration" class="input" placeholder="5 Days">
+        </div>
+        <div class="field">
+            <label>Notes (Optional)</label>
+            <input type="text" id="med_notes" class="input" placeholder="After food">
+        </div>
+        <div class="field">
+            <button type="button" class="btn btn-secondary" onclick="addMedicine()">Add</button>
+        </div>
+    </div>
+
+    <hr style="margin: 24px 0;">
+    <h2 class="h6" style="margin-bottom: 12px;">Lab Test Ordering</h2>
+    <div class="row-between">
+      <div class="field" style="flex: 1; max-width: 400px; margin-right: 16px;">
+        <label>Select Test</label>
+        <select id="lab_select" class="input">
+          <option value="">-- Choose a test --</option>
+          <option value="Complete Blood Count (CBC)">Complete Blood Count (CBC)</option>
+          <option value="Lipid Panel">Lipid Panel</option>
+          <option value="Thyroid Panel">Thyroid Panel</option>
+          <option value="X-Ray">X-Ray</option>
+          <option value="MRI">MRI</option>
+        </select>
+      </div>
+      <div>
+        <button type="button" class="btn btn-secondary" onclick="orderTest()" style="margin-top: 24px;">Order Test</button>
+      </div>
+    </div>
+    
+    <div class="field" style="margin-top: 16px;">
+      <label>Ordered Tests (Comma separated)</label>
+      <input type="text" id="ordered_tests" class="input" name="ordered_tests" value="{{ active_appointment.ordered_tests or '' }}" readonly>
+    </div>
+
+    <div class="row-between" style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #ccc;">
+      <div class="field" style="flex: 1; max-width: 200px;">
+        <label>Visit Status</label>
+        <select class="input" name="status" id="status_dropdown">
+          <option value="scheduled" {% if active_appointment.status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+          <option value="completed" {% if active_appointment.status == 'completed' %}selected{% endif %}>Completed</option>
+          <option value="cancelled" {% if active_appointment.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+          <option value="pending_lab" {% if active_appointment.status == 'pending_lab' %}selected{% endif %}>Pending Lab</option>
+          <option value="missed" {% if active_appointment.status == 'missed' %}selected{% endif %}>Missed</option>
+        </select>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" class="btn btn-ghost" onclick="saveOnly()">Save</button>
+        <button type="button" class="btn btn-primary" onclick="completeConsult()">Complete Consultation</button>
+      </div>
+    </div>
+  </form>
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let medicines = JSON.parse(document.getElementById('prescription_json').value || '[]');
+
+    function renderMedicines() {
+        const list = document.getElementById('medicineList');
+        list.innerHTML = '';
+        if (medicines.length === 0) {
+            list.innerHTML = '<span class="muted small">No medicines added.</span>';
+            return;
+        }
+        
+        let html = '<table class="table" style="font-size:0.9rem;"><thead><tr><th>Name</th><th>Dosage</th><th>Duration</th><th>Notes</th><th></th></tr></thead><tbody>';
+        medicines.forEach((m, idx) => {
+            html += `<tr>
+                <td>${m.name}</td>
+                <td>${m.dosage}</td>
+                <td>${m.duration}</td>
+                <td>${m.notes}</td>
+                <td style="text-align:right;"><button type="button" class="btn btn-ghost btn-sm" onclick="removeMed(${idx})">X</button></td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+        list.innerHTML = html;
+        document.getElementById('prescription_json').value = JSON.stringify(medicines);
+    }
+
+    function addMedicine() {
+        const name = document.getElementById('med_name').value.trim();
+        const dosage = document.getElementById('med_dosage').value.trim();
+        const duration = document.getElementById('med_duration').value.trim();
+        const notes = document.getElementById('med_notes').value.trim();
+        if (name && dosage && duration) {
+            medicines.push({ name, dosage, duration, notes });
+            renderMedicines();
+            document.getElementById('med_name').value = '';
+            document.getElementById('med_dosage').value = '';
+            document.getElementById('med_duration').value = '';
+            document.getElementById('med_notes').value = '';
+        } else {
+            alert('Name, Dosage, and Duration are required fields.');
+        }
+    }
+
+    function removeMed(idx) {
+        medicines.splice(idx, 1);
+        renderMedicines();
+    }
+
+    function orderTest() {
+        const sel = document.getElementById('lab_select');
+        const test = sel.value;
+        if (!test) return;
+        
+        const input = document.getElementById('ordered_tests');
+        let current = input.value ? input.value.split(',').map(s=>s.trim()) : [];
+        if (!current.includes(test)) {
+            current.push(test);
+            input.value = current.join(', ');
+            document.getElementById('status_dropdown').value = 'pending_lab';
+        }
+        sel.value = '';
+    }
+
+    function saveOnly() {
+        document.getElementById('consultationForm').submit();
+    }
+
+    function completeConsult() {
+        const dropdown = document.getElementById('status_dropdown');
+        if (dropdown.value === 'scheduled') {
+            dropdown.value = 'completed';
+        }
+        document.getElementById('consultationForm').submit();
+    }
+
+    document.addEventListener('DOMContentLoaded', renderMedicines);
+</script>
+{% endblock %}

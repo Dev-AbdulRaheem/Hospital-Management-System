@@ -56,7 +56,7 @@
             <td>{{ slot_label(a.time_slot) }}</td>
             <td>{{ a.patient.name }}</td>
             <td><span class="badge">{{ a.status }}</span></td>
-            <td><a class="btn btn-secondary btn-sm" href="{{ url_for('doctor.patient_detail', patient_id=a.patient_id) }}">View EHR</a></td>
+            <td><a class="btn btn-secondary btn-sm" href="{{ url_for('doctor.consultation', appt_id=a.id) }}">Start Consultation</a></td>
           </tr>
           {% else %}
           <tr><td colspan="5" class="muted" style="text-align:center; padding: 16px;">No upcoming appointments.</td></tr>
@@ -72,7 +72,7 @@
       {% for p in patients %}
       <li class="list-row">
         <span>{{ p.name }}</span>
-        <a class="btn btn-ghost btn-sm" href="{{ url_for('doctor.patient_detail', patient_id=p.id) }}">Open File</a>
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('doctor.patient_detail', patient_id=p.id) }}">View Patient</a>
       </li>
       {% else %}
       <li class="muted small">No patients yet.</li>

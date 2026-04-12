@@ -13,7 +13,13 @@
     <h1>Patients</h1>
     <p class="muted small">Create, edit, or remove patient accounts.</p>
   </div>
-  <a href="{{ url_for('admin.patients_add') }}" class="btn btn-primary btn-sm">Add patient</a>
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <form method="get" action="{{ url_for('admin.patients_list') }}" style="display: flex; gap: 8px;">
+      <input type="text" name="q" class="input" placeholder="Search by name or phone..." value="{{ search_query or '' }}" style="width: 250px;">
+      <button class="btn btn-secondary" type="submit">Search</button>
+    </form>
+    <a href="{{ url_for('admin.patients_add') }}" class="btn btn-primary btn-sm">Add patient</a>
+  </div>
 </header>
 
 <section class="card">
