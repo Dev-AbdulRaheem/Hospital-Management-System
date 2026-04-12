@@ -514,12 +514,6 @@ def departments():
     return render_template("admin/departments.html", departments=rows, chart_labels=chart_labels, chart_values=chart_values)
 
 
-@admin_bp.route("/invoice-desk")
-@admin_required
-def invoice_desk():
-    """List all unpaid appointments for invoice generation."""
-    unpaid_appts = Appointment.query.filter_by(is_paid=False).order_by(Appointment.appointment_date.desc()).all()
-    return render_template("admin/invoice_desk.html", appointments=unpaid_appts)
 
 
 @admin_bp.route("/reports")

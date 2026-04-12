@@ -70,19 +70,19 @@ def seed_if_empty(app):
 
         pwd = generate_password_hash("doctor123")
         # Unsplash professional medical photo IDs for variety
-        unsplash_ids = [
-            "1559839734-2b71f1e59816", "1622253692010-333f2da6031d", "1612349317150-e413f6a5b16d",
-            "1537368910025-700350fe46c7", "1594824476967-48c8b964273f", "1622902046580-2b47f47f0803",
-            "1551601651-2a8555f1a136", "1537368910025-700350fe46c7", "1594824476967-48c8b964273f",
-            "1612349317150-e413f6a5b16d", "1559839734-2b71f1e59816", "1622253692010-333f2da6031d",
-            "1612349317150-e413f6a5b16d", "1537368910025-700350fe46c7", "1594824476967-48c8b964273f",
-            "1622902046580-2b47f47f0803", "1551601651-2a8555f1a136", "1537368910025-700350fe46c7",
-            "1594824476967-48c8b964273f", "1612349317150-e413f6a5b16d"
-        ]
+       # Single professional image for all males and all females
+        MALE_DOC_IMG = "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=400&auto=format&fit=crop"
+        FEMALE_DOC_IMG = "https://images.unsplash.com/photo-1594824476967-48c8b964273f?q=80&w=400&auto=format&fit=crop"
 
-        for i, (name, email, dname, years, bio, fee, qualifications, unavail_start, unavail_end) in enumerate(doctors_spec):
+        for name, email, dname, years, bio, fee, qualifications, unavail_start, unavail_end in doctors_spec:
             did = dept_by_name[dname]
-            img_id = unsplash_ids[i % len(unsplash_ids)]
+            
+            # Identify gender by name to assign the correct image
+            if any(n in name for n in ["Sarah", "Priya", "Emily", "Lisa", "Anna", "Helen", "Maria", "Sophie", "Fatima", "Nina", "Mei"]):
+                img_url = FEMALE_DOC_IMG
+            else:
+                img_url = MALE_DOC_IMG
+
             doc = Doctor(
                 name=name,
                 email=email,
@@ -96,10 +96,9 @@ def seed_if_empty(app):
                 unavailability_start_date=unavail_start,
                 unavailability_end_date=unavail_end,
                 qualifications=qualifications,
-                image_url=f"https://images.unsplash.com/photo-{img_id}?q=80&w=400&auto=format&fit=crop"
+                image_url=img_url
             )
             db.session.add(doc)
-
         # 12 patients (at least 10)
         patients_data = [
             ("Alice Johnson", "alice.j@email.com", "1990-04-12", "Female"),

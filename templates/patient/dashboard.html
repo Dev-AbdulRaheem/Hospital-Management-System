@@ -54,7 +54,8 @@
       </div>
       <div>
         <label class="muted small">Date of Birth</label>
-        <div style="font-weight: 600;">{{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else '—' }} (Age: {{ patient.age if patient.age is not none else '—' }})</div>
+        <div style="font-weight: 600;">{{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else '—'
+          }} (Age: {{ patient.age if patient.age is not none else '—' }})</div>
       </div>
     </div>
   </section>
@@ -72,7 +73,16 @@
   <h2 class="h6">Upcoming appointments</h2>
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th>Date</th><th>Time</th><th>Doctor</th><th>Department</th><th>Status</th><th>Actions</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Doctor</th>
+          <th>Department</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
       <tbody>
         {% for a in upcoming %}
         <tr>
@@ -82,13 +92,16 @@
           <td>{{ a.doctor.department.name if a.doctor.department else '—' }}</td>
           <td><span class="badge">{{ a.status }}</span></td>
           <td>
-            <form method="post" action="{{ url_for('patient.cancel_appointment', appt_id=a.id) }}" onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
+            <form method="post" action="{{ url_for('patient.cancel_appointment', appt_id=a.id) }}"
+              onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
               <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
             </form>
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="muted" style="text-align:center; padding: 16px;">No upcoming appointments.</td></tr>
+        <tr>
+          <td colspan="6" class="muted" style="text-align:center; padding: 16px;">No upcoming appointments.</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
@@ -99,7 +112,16 @@
   <h2 class="h6">Appointment History & Medical Records</h2>
   <div class="table-wrap">
     <table class="table">
-      <thead><tr><th>Date</th><th>Doctor</th><th>Diagnosis</th><th>Prescription</th><th>Reports</th><th>Billing</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Doctor</th>
+          <th>Diagnosis</th>
+          <th>Prescription</th>
+          <th>Reports</th>
+          <th>Billing</th>
+        </tr>
+      </thead>
       <tbody>
         {% for a in history %}
         <tr>
@@ -108,7 +130,8 @@
           <td>{{ a.diagnosis or '—' }}</td>
           <td>
             {% if a.prescription or (a.prescription_json and a.prescription_json != "[]") %}
-            <a class="btn btn-secondary btn-sm" href="{{ url_for('patient.prescription_receipt', appt_id=a.id) }}" target="_blank">View Receipt</a>
+            <a class="btn btn-secondary btn-sm" href="{{ url_for('patient.prescription_receipt', appt_id=a.id) }}"
+              target="_blank">View Receipt</a>
             {% else %}
             —
             {% endif %}
@@ -117,25 +140,29 @@
             {% if a.lab_result_link %}
             <a href="{{ a.lab_result_link }}" target="_blank" class="btn btn-secondary btn-sm">View Report</a>
             {% elif a.lab_report_path %}
-            <a href="{{ url_for('static', filename=a.lab_report_path) }}" target="_blank" class="btn btn-secondary btn-sm">View Report</a>
+            <a href="{{ url_for('static', filename=a.lab_report_path) }}" target="_blank"
+              class="btn btn-secondary btn-sm">View Report</a>
             {% else %}
             —
             {% endif %}
           </td>
           <td>
             {% if a.invoice_amount > 0 %}
-              {% if a.is_paid %}
-              <span class="badge badge-success">Paid</span>
-              {% else %}
-              <button class="btn btn-primary btn-sm pay-btn" data-appt-id="{{ a.id }}" data-amount="{{ a.invoice_amount }}">Pay ${{ a.invoice_amount }}</button>
-              {% endif %}
+            {% if a.is_paid %}
+            <span class="badge badge-success">Paid</span>
+            {% else %}
+            <button class="btn btn-primary btn-sm pay-btn" data-appt-id="{{ a.id }}"
+              data-amount="{{ a.invoice_amount }}" data-doctor="{{ a.doctor.name }}">Pay ${{ a.invoice_amount }}</button>
+            {% endif %}
             {% else %}
             —
             {% endif %}
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="muted" style="text-align:center; padding: 16px;">No past visits yet.</td></tr>
+        <tr>
+          <td colspan="6" class="muted" style="text-align:center; padding: 16px;">No past visits yet.</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
@@ -143,77 +170,21 @@
 </section>
 
 <!-- Prescription Modal -->
-<div class="modal-backdrop" id="prescriptionModal" aria-hidden="true">
-  <section class="modal" role="dialog" aria-modal="true">
-    <header class="modal-head">
-      <h3 class="modal-title">Clinical Record - <span id="recordDate"></span></h3>
-      <button type="button" class="icon-btn" data-modal-close>×</button>
-    </header>
-    <div class="modal-body">
-      <div style="margin-bottom: 20px;">
-        <label class="muted small uppercase" style="display: block; letter-spacing: 0.05em; margin-bottom: 4px;">Consulting Doctor</label>
-        <div id="recordDoctor" style="font-weight: 600; font-size: 1.1rem; color: var(--primary);"></div>
-      </div>
-      
-      <div class="card" style="background: var(--bg-body); border-left: 4px solid var(--primary); margin-bottom: 16px;">
-        <label class="muted small uppercase" style="display: block; letter-spacing: 0.05em; margin-bottom: 8px;">Prescription</label>
-        <div id="recordPrescription" style="white-space: pre-wrap; line-height: 1.6;"></div>
-      </div>
 
-      <div style="margin-bottom: 16px;">
-        <label class="muted small uppercase" style="display: block; letter-spacing: 0.05em; margin-bottom: 4px;">Vitals</label>
-        <div id="recordVitals" class="small" style="font-weight: 500;"></div>
-      </div>
-
-      <div style="margin-bottom: 16px;">
-        <label class="muted small uppercase" style="display: block; letter-spacing: 0.05em; margin-bottom: 4px;">Ordered Lab Tests</label>
-        <div id="recordTests" class="small" style="font-weight: 500;"></div>
-        <div id="recordLabLinkContainer" style="margin-top: 4px; display: none;">
-          <a id="recordLabLink" href="#" target="_blank" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 0.8rem;">View Lab Results</a>
-        </div>
-      </div>
-
-      <div>
-        <label class="muted small uppercase" style="display: block; letter-spacing: 0.05em; margin-bottom: 4px;">Additional Notes</label>
-        <div id="recordNotes" class="muted" style="white-space: pre-wrap; font-style: italic;"></div>
-      </div>
-    </div>
-    <footer class="modal-foot">
-      <button type="button" class="btn btn-secondary" onclick="window.print()">Print Record</button>
-      <button type="button" class="btn btn-ghost" data-modal-close>Close</button>
-    </footer>
-  </section>
-</div>
 
 <!-- Mock Payment Modal -->
 <div class="modal-backdrop" id="paymentModal" aria-hidden="true">
   <section class="modal" role="dialog" aria-modal="true">
     <header class="modal-head">
-      <h3 class="modal-title">Mock Payment Gateway</h3>
+      <h3 class="modal-title">Payment Confirmation</h3>
       <button type="button" class="icon-btn" data-modal-close>×</button>
     </header>
     <div class="modal-body">
-      <p class="lead">Complete your payment of <strong id="payAmount"></strong></p>
-      <form id="paymentForm" class="form">
-        <input type="hidden" id="payApptId">
-        <div class="field">
-          <label>Card Number</label>
-          <input type="text" class="input" placeholder="4444 4444 4444 4444" maxlength="19">
-        </div>
-        <div class="vitals-grid">
-          <div class="field">
-            <label>Expiry</label>
-            <input type="text" class="input" placeholder="MM/YY">
-          </div>
-          <div class="field">
-            <label>CVV</label>
-            <input type="password" class="input" placeholder="***">
-          </div>
-        </div>
-      </form>
+      <p class="lead" id="payConfirmationText">Confirm payment of <strong id="payAmount"></strong> for Dr. <strong id="payDoctor"></strong>?</p>
+      <input type="hidden" id="payApptId">
     </div>
     <footer class="modal-foot">
-      <button type="button" class="btn btn-primary" id="confirmPayBtn">Pay Now</button>
+      <button type="button" class="btn btn-primary" id="confirmPayBtn">Confirm & Proceed</button>
       <button type="button" class="btn btn-ghost" data-modal-close>Cancel</button>
     </footer>
   </section>
@@ -222,26 +193,27 @@
 
 {% block extra_js %}
 <script>
-// Payment Modal Logic
-document.querySelectorAll(".pay-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.getElementById("payAmount").textContent = "$" + btn.dataset.amount;
-    document.getElementById("payApptId").value = btn.dataset.apptId;
-    window.HMSModal.open("paymentModal");
-  });
-});
-
-document.getElementById("confirmPayBtn").addEventListener("click", () => {
-  const apptId = document.getElementById("payApptId").value;
-  fetch(`/patient/appointment/${apptId}/pay`, { method: 'POST' })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        location.reload();
-      } else {
-        alert("Payment failed. Please try again.");
-      }
+  // Payment Modal Logic
+  document.querySelectorAll(".pay-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.getElementById("payAmount").textContent = "$" + btn.dataset.amount;
+      document.getElementById("payApptId").value = btn.dataset.apptId;
+      document.getElementById("payDoctor").textContent = btn.dataset.doctor;
+      window.HMSModal.open("paymentModal");
     });
-});
+  });
+
+  document.getElementById("confirmPayBtn").addEventListener("click", () => {
+    const apptId = document.getElementById("payApptId").value;
+    fetch(`/patient/appointment/${apptId}/pay`, { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert("Payment failed. Please try again.");
+        }
+      });
+  });
 </script>
 {% endblock %}

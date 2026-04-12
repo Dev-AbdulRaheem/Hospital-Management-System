@@ -35,8 +35,8 @@
             <div class="small muted">Fee + {{ (a.ordered_tests.split(',')|length) if a.ordered_tests else 0 }} Labs</div>
             {% else %}
             <form method="post" action="{{ url_for('admin.generate_invoice', appt_id=a.id) }}" class="row-between" style="gap: 4px;">
-              <input type="number" name="amount" class="input" style="width: 80px;" placeholder="Amount" required>
-              <button type="submit" class="btn btn-primary btn-sm">Set Fee</button>
+              <input type="number" name="amount" class="input" style="width: 80px;" value="{{ a.doctor.consultation_fee }}" required>
+              <button type="submit" class="btn btn-primary btn-sm">Set Fee & Confirm</button>
             </form>
             {% endif %}
           </td>
