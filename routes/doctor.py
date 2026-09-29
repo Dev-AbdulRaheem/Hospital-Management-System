@@ -10,7 +10,7 @@ from utils.auth_helpers import doctor_required
 doctor_bp = Blueprint("doctor", __name__, url_prefix="/doctor")
 
 
-@doctor_bp.route("/login", methods=["GET", "POST"])
+@doctor_bp.route("/loginn", methods=["GET", "POST"])
 def login():
     """Doctor sign-in (email + password)."""
     if session.get("doctor_id"):
