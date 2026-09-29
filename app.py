@@ -42,6 +42,11 @@ def create_app(config_class=Config):
             depts = []
         return {"nav_departments": depts, "current_year": datetime.now().year}
 
+    @app.route("/health")
+    def health():
+        """Simple health check to confirm the app is running."""
+        return {"status": "ok"}
+
     with app.app_context():
         # db.drop_all() # Uncomment to force schema refresh if needed
         db.create_all()
